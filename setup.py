@@ -5,8 +5,8 @@ from distutils.core import setup
 setup(name='uts',
       version='1.0',
       description='Python Distribution Utilities',
-      author='Greg Ward',
-      author_email='gward@python.net',
-      url='https://www.python.org/sigs/distutils-sig/',
+      author='Mário antunes',
+      author_email='mariolpantunes@gmail.com',
+      url=https://github.com/mariolpantunes/uts',
       packages=['distutils', 'distutils.command'],
      )
