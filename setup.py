@@ -16,7 +16,6 @@ setup(
       author='Mário antunes',
       author_email='mariolpantunes@gmail.com',
       url='https://github.com/mariolpantunes/uts',
-      package_dir={'': 'uts'},
-      packages=find_packages(where='uts'),
+      packages=find_packages(),
       install_requires=['numpy>=1.19.4']
 )
