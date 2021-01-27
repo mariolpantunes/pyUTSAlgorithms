@@ -13,7 +13,6 @@ class TestEMA(unittest.TestCase):
         desired = np.array([[0.0, 0.0], [1.0, .54],
         [1.2, .85], [2.3, 3.07], [2.9, 4.39], [5, 8.03]])
         npt.assert_almost_equal(result, desired, decimal=2)
-        #self.assertEqual(result, 6)
 
 if __name__ == '__main__':
     unittest.main()
