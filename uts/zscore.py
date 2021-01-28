@@ -8,9 +8,10 @@ __status__ = 'Development'
 
 import math
 import numpy as np
+from typing import Tuple
 
 
-def weighted_avg_and_std(values, weights):
+def weighted_avg_and_std(values: np.ndarray, weights: np.ndarray) -> Tuple[float]:
     """
     Return the weighted average and standard deviation.
 
@@ -22,11 +23,11 @@ def weighted_avg_and_std(values, weights):
     return (average, math.sqrt(variance))
 
 
-def zscore(xi, mean, std):
+def zscore(xi: float, mean: float, std: float) -> float:
     return (xi-mean)/std
 
 
-def linear_delta_mapping(points):
+def linear_delta_mapping(points: np.ndarray) -> Tuple[float]:
     xpoints = np.transpose(points)[0]
     ypoints = np.transpose(points)[1]
 
@@ -36,7 +37,7 @@ def linear_delta_mapping(points):
     return tdelta, linear_values
 
 
-def zscore_linear(xi, points):
+def zscore_linear(xi: float, points: np.ndarray) -> float:
     
     if len(points) <= 1:
         raise Exception('The number of points is smaller than 2')
