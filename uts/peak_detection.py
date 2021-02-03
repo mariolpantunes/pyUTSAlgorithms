@@ -10,7 +10,7 @@ import numpy as np
 import math
 
 
-from uts import zscore
+from uts import zscore, thresholding
 
 
 def all_peaks(points):
@@ -50,7 +50,6 @@ def significant_peaks(points, peaks_idx, h=1.0):
 
     return np.array(significant)
 
-
 def find_next_tau(points, i, tau):
     if i == len(points)-1:
         return i
@@ -66,10 +65,10 @@ def find_next_tau(points, i, tau):
     return i+idx+1
 
 
-def significant_zscore_peaks(points, peaks_idx, t=1.0):
+def zscore_peaks_values(points, peaks_idx):
     peaks = points[peaks_idx]
 
-    significant = []
+    scores = []
 
     # k current peak
     k = 0
@@ -87,19 +86,27 @@ def significant_zscore_peaks(points, peaks_idx, t=1.0):
             right = find_next_tau(points, i, tau)
 
             score = math.fabs(zscore.zscore_linear(peaks[k][1], points[left : right+1]))
-
-            if score > t:
-                significant.append(True)
-            else:
-                significant.append(False)
+            scores.append(score)
 
             # next left
             left = i
             k += 1
         else:
-            significant.append(False)
+            scores.append(0)
 
-    return np.array(significant)
+    return np.array(scores)
+
+
+def significant_zscore_peaks(points, peaks_idx, t=1.0):
+    scores = zscore_peaks_values(points, peaks_idx)
+    return scores > t
+
+
+def significant_zscore_peaks_iso(points, peaks_idx):
+    scores = zscore_peaks_values(points, peaks_idx)
+    positive_scores = scores[scores > 0]
+    t = thresholding.isodata(positive_scores)
+    return scores > t
 
 
 def mountaineer_peak_valley(points, threshold=1):
