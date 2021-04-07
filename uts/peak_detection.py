@@ -31,6 +31,18 @@ def all_peaks(points):
     return np.array(filter_array)
 
 
+def highest_peak(points, peaks_idx):
+
+    h = 0
+    idx = -1
+
+    for i in range(0, len(points)):
+        if peaks_idx[i] and points[i][1] > h:
+            h = points[i][1]
+            idx = i
+    
+    return idx
+
 def significant_peaks(points, peaks_idx, h=1.0):
     peaks = points[peaks_idx]
     m = np.mean(peaks, axis=0)[1]
@@ -49,6 +61,7 @@ def significant_peaks(points, peaks_idx, h=1.0):
             significant.append(False)
 
     return np.array(significant)
+
 
 def find_next_tau(points, i, tau):
     if i == len(points)-1:
