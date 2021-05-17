@@ -25,7 +25,10 @@ def weighted_avg_and_std(values: np.ndarray, weights: np.ndarray) -> Tuple[float
 
 
 def zscore(xi: float, mean: float, std: float) -> float:
-    return (xi-mean)/std
+    if std != 0:
+        return (xi - mean)/std
+    else:
+        return xi-mean
 
 
 def linear_delta_mapping_points(points: np.ndarray) -> Tuple[float]:
@@ -57,5 +60,7 @@ def zscore_array_points(points: np.ndarray) -> np.ndarray:
 def zscore_array(x: np.ndarray ,y: np.ndarray) -> np.ndarray:
     weights, values = linear_delta_mapping(x, y)
     mean, std = weighted_avg_and_std(values, weights)
-    scores = (y - mean)/std
-    return scores
+    if std != 0.0:
+        return (y - mean)/std
+    else:
+        return y - mean
