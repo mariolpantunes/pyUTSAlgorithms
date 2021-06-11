@@ -5,6 +5,7 @@ __version__ = '0.1'
 __email__ = 'mariolpantunes@gmail.com'
 __status__ = 'Development'
 
+
 import numpy as np
 import math
 
