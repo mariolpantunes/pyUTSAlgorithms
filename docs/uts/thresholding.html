@@ -34,12 +34,22 @@ __version__ = &#39;0.1&#39;
 __email__ = &#39;mariolpantunes@gmail.com&#39;
 __status__ = &#39;Development&#39;
 
+
 import numpy as np
-import math
+
 
 def isodata(array: np.ndarray) -&gt; float:
+    &#34;&#34;&#34;
+    Returns optimal threshold for dividing the sequence of values.
+
+    Args:
+        array (np.ndarray): numpy array with the values
+    
+    Returns:
+        float: optimal threshold for dividing the sequence of values
+    &#34;&#34;&#34;
     mean = array.mean()
-    previous_mean = 0 
+    previous_mean = 0.0 
     
     while mean != previous_mean:
         mean_left = array[array &lt;= mean].mean()
@@ -62,14 +72,33 @@ def isodata(array: np.ndarray) -&gt; float:
 <span>def <span class="ident">isodata</span></span>(<span>array: numpy.ndarray) ‑> float</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Returns optimal threshold for dividing the sequence of values.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>array</code></strong> :&ensp;<code>np.ndarray</code></dt>
+<dd>numpy array with the values</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>float</code></dt>
+<dd>optimal threshold for dividing the sequence of values</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def isodata(array: np.ndarray) -&gt; float:
+    &#34;&#34;&#34;
+    Returns optimal threshold for dividing the sequence of values.
+
+    Args:
+        array (np.ndarray): numpy array with the values
+    
+    Returns:
+        float: optimal threshold for dividing the sequence of values
+    &#34;&#34;&#34;
     mean = array.mean()
-    previous_mean = 0 
+    previous_mean = 0.0 
     
     while mean != previous_mean:
         mean_left = array[array &lt;= mean].mean()

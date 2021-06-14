@@ -5,12 +5,22 @@ __version__ = '0.1'
 __email__ = 'mariolpantunes@gmail.com'
 __status__ = 'Development'
 
+
 import numpy as np
-import math
+
 
 def isodata(array: np.ndarray) -> float:
+    """
+    Returns optimal threshold for dividing the sequence of values.
+
+    Args:
+        array (np.ndarray): numpy array with the values
+    
+    Returns:
+        float: optimal threshold for dividing the sequence of values
+    """
     mean = array.mean()
-    previous_mean = 0 
+    previous_mean = 0.0 
     
     while mean != previous_mean:
         mean_left = array[array <= mean].mean()
