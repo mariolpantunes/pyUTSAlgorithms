@@ -37,44 +37,99 @@ __status__ = &#39;Development&#39;
 
 import math
 import numpy as np
-from typing import Tuple
 
 
-def weighted_avg_and_std(values: np.ndarray, weights: np.ndarray) -&gt; Tuple[float]:
+def weighted_avg_and_std(values: np.ndarray, weights: np.ndarray) -&gt; tuple[float, float]:
     &#34;&#34;&#34;
     Return the weighted average and standard deviation.
-    values, weights -- Numpy ndarrays with the same shape.
+    
+    Args:
+        points (np.ndarray): numpy array with values
+        weights (np.ndarray): numpy array with weights
+    
+    Returns:
+        tuple[float, float]: returns a tuple with the weighted average and standard deviation
     &#34;&#34;&#34;
     average = np.average(values, weights=weights)
     # Fast and numerically precise:
-    #print(f&#39;values={values} weights={weights}&#39;)
     variance = np.average((values-average)**2, weights=weights)
-    #print(f&#39;STD = {math.sqrt(variance)}/{np.std(values)}&#39;)
     return (average, math.sqrt(variance))
 
 
 def zscore(xi: float, mean: float, std: float) -&gt; float:
+    &#34;&#34;&#34;
+    Return the z-score for a single value.
+    
+    Args:
+        xi (float): the single value
+        mean (float): mean value from the sequence
+        std (float): standart deviation from the sequence
+    
+    Returns:
+        float: the z-score for a single value
+    &#34;&#34;&#34;
     if std != 0:
         return (xi - mean)/std
     else:
-        return xi-mean
+        return xi - mean
 
 
-def linear_delta_mapping_points(points: np.ndarray) -&gt; Tuple[float]:
+def linear_delta_mapping_points(points: np.ndarray) -&gt; tuple[np.ndarray, np.ndarray]:
+    &#34;&#34;&#34;
+    Return a linear mapping from the sequence of points.
+
+    One way to estimate the z-score metric from a uneven sequence
+    is to map the values linearly and compute the weight of each new value.
+    The weight is proportional to the delta in the x axis.
+    
+    Args:
+        points (np.ndarray): numpy array with the points (x, y)
+    
+    Returns:
+        tuple[np.ndarray, np.ndarray]: the weight and the linear mapping
+    &#34;&#34;&#34;
     x = points[:, 0]
     y = points[:, 1]
     return linear_delta_mapping(x, y)
 
 
-def linear_delta_mapping(x: np.ndarray ,y: np.ndarray) -&gt; Tuple[float]:
+def linear_delta_mapping(x: np.ndarray, y: np.ndarray) -&gt; tuple[np.ndarray, np.ndarray]:
+    &#34;&#34;&#34;
+    Return a linear mapping from the sequence of points.
+
+    One way to estimate the z-score metric from a uneven sequence
+    is to map the values linearly and compute the weight of each new value.
+    The weight is proportional to the delta in the x axis.
+    
+    Args:
+        x (np.ndarray): values from the x axis
+        y (np.ndarray): values from the y axis
+    
+    Returns:
+        tuple[np.ndarray, np.ndarray]: the weight and the linear mapping
+    &#34;&#34;&#34;
     tdelta =  x[1:] - x[:-1]
     linear_values = (y[1:] + y[:-1]) / 2.0
     return tdelta, linear_values
 
 
 def zscore_linear(xi: float, points: np.ndarray) -&gt; float:
+    &#34;&#34;&#34;
+    Return the z-score for a single value, using the linear mapping
+    to deal with the uneven sequence of values.
+    
+    Args:
+        xi (float): the single value
+        points (np.ndarray): numpy array with the points (x, y)
+    
+    Returns:
+        float: the z-score for a single value
+    
+    Raises:
+        ValueError: If the lenght of points is smaller than 2.
+    &#34;&#34;&#34;
     if len(points) &lt;= 1:
-        raise Exception(&#39;The number of points is smaller than 2&#39;)
+        raise ValueError(&#39;The number of points is smaller than 2&#39;)
 
     weights, values = linear_delta_mapping_points(points)
     mean, std = weighted_avg_and_std(values, weights)
@@ -82,11 +137,35 @@ def zscore_linear(xi: float, points: np.ndarray) -&gt; float:
 
 
 def zscore_array_points(points: np.ndarray) -&gt; np.ndarray:
+    &#34;&#34;&#34;
+    Returns the z-score value for all the values in the sequence.
+
+    It uses linear mapping to deal with the uneven sequence.
+    
+    Args:
+        points (np.ndarray): numpy array with the points (x, y)
+    
+    Returns:
+        np.ndarray: the z-score value for all the values in the sequence
+    &#34;&#34;&#34;
     x = points[:, 0]
     y = points[:, 1]
     return zscore_array(x, y)
 
-def zscore_array(x: np.ndarray ,y: np.ndarray) -&gt; np.ndarray:
+
+def zscore_array(x: np.ndarray, y: np.ndarray) -&gt; np.ndarray:
+    &#34;&#34;&#34;
+    Returns the z-score value for all the values in the sequence.
+
+    It uses linear mapping to deal with the uneven sequence.
+    
+    Args:
+        x (np.ndarray): values from the x axis
+        y (np.ndarray): values from the y axis
+    
+    Returns:
+        np.ndarray: the z-score value for all the values in the sequence
+    &#34;&#34;&#34;
     weights, values = linear_delta_mapping(x, y)
     mean, std = weighted_avg_and_std(values, weights)
     if std != 0.0:
@@ -103,55 +182,125 @@ def zscore_array(x: np.ndarray ,y: np.ndarray) -&gt; np.ndarray:
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
 <dt id="uts.zscore.linear_delta_mapping"><code class="name flex">
-<span>def <span class="ident">linear_delta_mapping</span></span>(<span>x: numpy.ndarray, y: numpy.ndarray) ‑> Tuple[float]</span>
+<span>def <span class="ident">linear_delta_mapping</span></span>(<span>x: numpy.ndarray, y: numpy.ndarray) ‑> tuple</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Return a linear mapping from the sequence of points.</p>
+<p>One way to estimate the z-score metric from a uneven sequence
+is to map the values linearly and compute the weight of each new value.
+The weight is proportional to the delta in the x axis.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>x</code></strong> :&ensp;<code>np.ndarray</code></dt>
+<dd>values from the x axis</dd>
+<dt><strong><code>y</code></strong> :&ensp;<code>np.ndarray</code></dt>
+<dd>values from the y axis</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>tuple[np.ndarray, np.ndarray]</code></dt>
+<dd>the weight and the linear mapping</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def linear_delta_mapping(x: np.ndarray ,y: np.ndarray) -&gt; Tuple[float]:
+<pre><code class="python">def linear_delta_mapping(x: np.ndarray, y: np.ndarray) -&gt; tuple[np.ndarray, np.ndarray]:
+    &#34;&#34;&#34;
+    Return a linear mapping from the sequence of points.
+
+    One way to estimate the z-score metric from a uneven sequence
+    is to map the values linearly and compute the weight of each new value.
+    The weight is proportional to the delta in the x axis.
+    
+    Args:
+        x (np.ndarray): values from the x axis
+        y (np.ndarray): values from the y axis
+    
+    Returns:
+        tuple[np.ndarray, np.ndarray]: the weight and the linear mapping
+    &#34;&#34;&#34;
     tdelta =  x[1:] - x[:-1]
     linear_values = (y[1:] + y[:-1]) / 2.0
     return tdelta, linear_values</code></pre>
 </details>
 </dd>
 <dt id="uts.zscore.linear_delta_mapping_points"><code class="name flex">
-<span>def <span class="ident">linear_delta_mapping_points</span></span>(<span>points: numpy.ndarray) ‑> Tuple[float]</span>
+<span>def <span class="ident">linear_delta_mapping_points</span></span>(<span>points: numpy.ndarray) ‑> tuple</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Return a linear mapping from the sequence of points.</p>
+<p>One way to estimate the z-score metric from a uneven sequence
+is to map the values linearly and compute the weight of each new value.
+The weight is proportional to the delta in the x axis.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>points</code></strong> :&ensp;<code>np.ndarray</code></dt>
+<dd>numpy array with the points (x, y)</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>tuple[np.ndarray, np.ndarray]</code></dt>
+<dd>the weight and the linear mapping</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def linear_delta_mapping_points(points: np.ndarray) -&gt; Tuple[float]:
+<pre><code class="python">def linear_delta_mapping_points(points: np.ndarray) -&gt; tuple[np.ndarray, np.ndarray]:
+    &#34;&#34;&#34;
+    Return a linear mapping from the sequence of points.
+
+    One way to estimate the z-score metric from a uneven sequence
+    is to map the values linearly and compute the weight of each new value.
+    The weight is proportional to the delta in the x axis.
+    
+    Args:
+        points (np.ndarray): numpy array with the points (x, y)
+    
+    Returns:
+        tuple[np.ndarray, np.ndarray]: the weight and the linear mapping
+    &#34;&#34;&#34;
     x = points[:, 0]
     y = points[:, 1]
     return linear_delta_mapping(x, y)</code></pre>
 </details>
 </dd>
 <dt id="uts.zscore.weighted_avg_and_std"><code class="name flex">
-<span>def <span class="ident">weighted_avg_and_std</span></span>(<span>values: numpy.ndarray, weights: numpy.ndarray) ‑> Tuple[float]</span>
+<span>def <span class="ident">weighted_avg_and_std</span></span>(<span>values: numpy.ndarray, weights: numpy.ndarray) ‑> tuple</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Return the weighted average and standard deviation.
-values, weights &ndash; Numpy ndarrays with the same shape.</p></div>
+<div class="desc"><p>Return the weighted average and standard deviation.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>points</code></strong> :&ensp;<code>np.ndarray</code></dt>
+<dd>numpy array with values</dd>
+<dt><strong><code>weights</code></strong> :&ensp;<code>np.ndarray</code></dt>
+<dd>numpy array with weights</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>tuple[float, float]</code></dt>
+<dd>returns a tuple with the weighted average and standard deviation</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def weighted_avg_and_std(values: np.ndarray, weights: np.ndarray) -&gt; Tuple[float]:
+<pre><code class="python">def weighted_avg_and_std(values: np.ndarray, weights: np.ndarray) -&gt; tuple[float, float]:
     &#34;&#34;&#34;
     Return the weighted average and standard deviation.
-    values, weights -- Numpy ndarrays with the same shape.
+    
+    Args:
+        points (np.ndarray): numpy array with values
+        weights (np.ndarray): numpy array with weights
+    
+    Returns:
+        tuple[float, float]: returns a tuple with the weighted average and standard deviation
     &#34;&#34;&#34;
     average = np.average(values, weights=weights)
     # Fast and numerically precise:
-    #print(f&#39;values={values} weights={weights}&#39;)
     variance = np.average((values-average)**2, weights=weights)
-    #print(f&#39;STD = {math.sqrt(variance)}/{np.std(values)}&#39;)
     return (average, math.sqrt(variance))</code></pre>
 </details>
 </dd>
@@ -159,28 +308,78 @@ values, weights &ndash; Numpy ndarrays with the same shape.</p></div>
 <span>def <span class="ident">zscore</span></span>(<span>xi: float, mean: float, std: float) ‑> float</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Return the z-score for a single value.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>xi</code></strong> :&ensp;<code>float</code></dt>
+<dd>the single value</dd>
+<dt><strong><code>mean</code></strong> :&ensp;<code>float</code></dt>
+<dd>mean value from the sequence</dd>
+<dt><strong><code>std</code></strong> :&ensp;<code>float</code></dt>
+<dd>standart deviation from the sequence</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>float</code></dt>
+<dd>the z-score for a single value</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def zscore(xi: float, mean: float, std: float) -&gt; float:
+    &#34;&#34;&#34;
+    Return the z-score for a single value.
+    
+    Args:
+        xi (float): the single value
+        mean (float): mean value from the sequence
+        std (float): standart deviation from the sequence
+    
+    Returns:
+        float: the z-score for a single value
+    &#34;&#34;&#34;
     if std != 0:
         return (xi - mean)/std
     else:
-        return xi-mean</code></pre>
+        return xi - mean</code></pre>
 </details>
 </dd>
 <dt id="uts.zscore.zscore_array"><code class="name flex">
 <span>def <span class="ident">zscore_array</span></span>(<span>x: numpy.ndarray, y: numpy.ndarray) ‑> numpy.ndarray</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Returns the z-score value for all the values in the sequence.</p>
+<p>It uses linear mapping to deal with the uneven sequence.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>x</code></strong> :&ensp;<code>np.ndarray</code></dt>
+<dd>values from the x axis</dd>
+<dt><strong><code>y</code></strong> :&ensp;<code>np.ndarray</code></dt>
+<dd>values from the y axis</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>np.ndarray</code></dt>
+<dd>the z-score value for all the values in the sequence</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def zscore_array(x: np.ndarray ,y: np.ndarray) -&gt; np.ndarray:
+<pre><code class="python">def zscore_array(x: np.ndarray, y: np.ndarray) -&gt; np.ndarray:
+    &#34;&#34;&#34;
+    Returns the z-score value for all the values in the sequence.
+
+    It uses linear mapping to deal with the uneven sequence.
+    
+    Args:
+        x (np.ndarray): values from the x axis
+        y (np.ndarray): values from the y axis
+    
+    Returns:
+        np.ndarray: the z-score value for all the values in the sequence
+    &#34;&#34;&#34;
     weights, values = linear_delta_mapping(x, y)
     mean, std = weighted_avg_and_std(values, weights)
     if std != 0.0:
@@ -193,12 +392,34 @@ values, weights &ndash; Numpy ndarrays with the same shape.</p></div>
 <span>def <span class="ident">zscore_array_points</span></span>(<span>points: numpy.ndarray) ‑> numpy.ndarray</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Returns the z-score value for all the values in the sequence.</p>
+<p>It uses linear mapping to deal with the uneven sequence.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>points</code></strong> :&ensp;<code>np.ndarray</code></dt>
+<dd>numpy array with the points (x, y)</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>np.ndarray</code></dt>
+<dd>the z-score value for all the values in the sequence</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def zscore_array_points(points: np.ndarray) -&gt; np.ndarray:
+    &#34;&#34;&#34;
+    Returns the z-score value for all the values in the sequence.
+
+    It uses linear mapping to deal with the uneven sequence.
+    
+    Args:
+        points (np.ndarray): numpy array with the points (x, y)
+    
+    Returns:
+        np.ndarray: the z-score value for all the values in the sequence
+    &#34;&#34;&#34;
     x = points[:, 0]
     y = points[:, 1]
     return zscore_array(x, y)</code></pre>
@@ -208,14 +429,46 @@ values, weights &ndash; Numpy ndarrays with the same shape.</p></div>
 <span>def <span class="ident">zscore_linear</span></span>(<span>xi: float, points: numpy.ndarray) ‑> float</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Return the z-score for a single value, using the linear mapping
+to deal with the uneven sequence of values.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>xi</code></strong> :&ensp;<code>float</code></dt>
+<dd>the single value</dd>
+<dt><strong><code>points</code></strong> :&ensp;<code>np.ndarray</code></dt>
+<dd>numpy array with the points (x, y)</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>float</code></dt>
+<dd>the z-score for a single value</dd>
+</dl>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><code>ValueError</code></dt>
+<dd>If the lenght of points is smaller than 2.</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def zscore_linear(xi: float, points: np.ndarray) -&gt; float:
+    &#34;&#34;&#34;
+    Return the z-score for a single value, using the linear mapping
+    to deal with the uneven sequence of values.
+    
+    Args:
+        xi (float): the single value
+        points (np.ndarray): numpy array with the points (x, y)
+    
+    Returns:
+        float: the z-score for a single value
+    
+    Raises:
+        ValueError: If the lenght of points is smaller than 2.
+    &#34;&#34;&#34;
     if len(points) &lt;= 1:
-        raise Exception(&#39;The number of points is smaller than 2&#39;)
+        raise ValueError(&#39;The number of points is smaller than 2&#39;)
 
     weights, values = linear_delta_mapping_points(points)
     mean, std = weighted_avg_and_std(values, weights)
