@@ -10,15 +10,19 @@ import numpy as np
 import math
 
 
-# EMA_next(X, tau)
 def next(values: np.ndarray, tau: float) -> np.ndarray:
-    # values     ... array of time series values
-    # times      ... array of observation times
-    # n          ... number of observations, i.e. length of 'values' and 'times'
-    # values_new ... array of length *n to store output time series values
-    # tau        ... (positive) half-life of EMA kernel
+    """
+    Computes the exponential moving average.
 
-    # double w;
+    This version uses the next value as a aproximation.
+
+    Args:
+        values (np.ndarray): array of time series values
+        tau (float): half-life of EMA kernel
+    
+    Returns:
+        np.ndarray: the result array after aplying the EMA kernel
+    """
 
     n = len(values)
     # Trivial case
@@ -36,16 +40,19 @@ def next(values: np.ndarray, tau: float) -> np.ndarray:
     return rv
 
 
-# EMA_last(X, tau)
 def last(values: np.ndarray, tau: float) -> np.ndarray:
+    """
+    Computes the exponential moving average.
 
-    # values     ... array of time series values
-    # times      ... array of observation times
-    # n          ... number of observations, i.e. length of 'values' and 'times'
-    # values_new ... array of length *n to store output time series values
-    # tau        ... (positive) half-life of EMA kernel
+    This version uses the last value as a aproximation.
 
-    # double w;
+    Args:
+        values (np.ndarray): array of time series values
+        tau (float): half-life of EMA kernel
+    
+    Returns:
+        np.ndarray: the result array after aplying the EMA kernel
+    """
 
     n = len(values)
     # Trivial case
@@ -63,14 +70,21 @@ def last(values: np.ndarray, tau: float) -> np.ndarray:
     return rv
 
 
-# values     ... array of time series values
-# tau        ... (positive) half-life of EMA kernel
-def linear(values: np.ndarray, tau: float) -> np.ndarray:
-    # times      ... array of observation times
-    # n          ... number of observations, i.e. length of 'values' and 'times'
-    # values_new ... array of length *n to store output time series values
 
-    # double w, w2, tmp;
+def linear(values: np.ndarray, tau: float) -> np.ndarray:
+    """
+    Computes the exponential moving average.
+
+    This version uses a linear aproximation.
+
+    Args:
+        values (np.ndarray): array of time series values
+        tau (float): half-life of EMA kernel
+    
+    Returns:
+        np.ndarray: the result array after aplying the EMA kernel
+    """
+
     n = len(values)
 
     # Trivial case
