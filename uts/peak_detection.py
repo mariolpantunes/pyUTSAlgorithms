@@ -17,7 +17,7 @@ def all_peaks(points: np.ndarray) -> np.ndarray:
     """
     Returns the index of all the peaks in a 2D curve.
 
-    A peak (y) is defined by the following expression: \( y_i-1 < y_i > y_i+1 \)
+    A peak (y) is defined by the following expression: \\( y_i-1 < y_i > y_i+1 \\)
 
     Args:
         points (np.ndarray): numpy array with the points (x, y)
@@ -60,12 +60,12 @@ def significant_peaks(points: np.ndarray, peaks_idx: np.ndarray, h: float = 1.0)
     """
     Returns the index of the significant peaks in a 2D curve.
 
-    A significant peak (y) is defined by the following definition: \( y > \overline{peaks} + h \times \sigma(peaks) \) 
-    
-    peak (y) is defined by the following expression: 
+    A significant peak (y) is defined by the following definition: \\( y > \overline{peaks} + h \\times \sigma(peaks) \\)
 
     Args:
         points (np.ndarray): numpy array with the points (x, y)
+        peaks_idx (np.ndarray): numpy array with the peak indexes
+        h (float): weight of the standart deviation
     
     Returns:
         np.ndarray: the indexes of the peak points
@@ -83,7 +83,22 @@ def significant_peaks(points: np.ndarray, peaks_idx: np.ndarray, h: float = 1.0)
     return np.array(significant)
 
 
-def find_next_tau(points, i, tau):
+def find_next_tau(points:np.ndarray, i: int, tau: float) -> int:
+    """
+    Returns the index of the next step.
+
+    Finds the index of the next element given a specified tau value.
+    This is necessary since the sequence is uneven.
+
+    Args:
+        points (np.ndarray): numpy array with the points (x, y)
+        i (int): index where the search starts
+        tau (float): time duration that needs to be exceeded 
+    
+    Returns:
+        int: the index of the next step
+    """
+    
     if i == len(points)-1:
         return i
     
@@ -98,45 +113,71 @@ def find_next_tau(points, i, tau):
     return i+idx+1
 
 
-def zscore_peaks_values(points, peaks_idx):
-    peaks = points[peaks_idx]
+def zscore_peaks_values(points: np.ndarray, peaks_idx: np.ndarray) -> np.ndarray:
+    """
+    Returns the z-score values of each peak.
 
+    The z-score values are computed within a neighborhood, based on the distance from the previous peak.
+
+    Args:
+        points (np.ndarray): numpy array with the points (x, y)
+        peaks_idx (np.ndarray): numpy array with the peak indexes
+    
+    Returns:
+        np.ndarry: z-score values of each peak
+    """
+    peaks = points[peaks_idx]
     scores = []
 
-    # k current peak
-    k = 0
-    # left part of the sliding window
-    left = 0
-    # i current point
-    for i in range(0, len(points)):
-        if peaks_idx[i]:
-            # Zscore from first peak (k=0)
-            
-            if k == 0:
-                tau =  peaks[k][0] - points[0][0]
-            else:
-                tau = peaks[k][0] - points[k-1][0]
-            right = find_next_tau(points, i, tau)
+    # first peak
+    tau =  peaks[0][0] - points[0][0]
+    right = find_next_tau(points, peaks_idx[0], tau)
+    score = math.fabs(zscore.zscore_linear(peaks[0][1], points[0 : right+1]))
+    scores.append(score)
 
-            score = math.fabs(zscore.zscore_linear(peaks[k][1], points[left : right+1]))
-            scores.append(score)
-
-            # next left
-            left = i
-            k += 1
-        else:
-            scores.append(0)
+    for i in range(1, len(peaks)):
+        tau = peaks[i][0] - peaks[i-1][0]
+        right = find_next_tau(points, peaks_idx[i], tau)
+        score = math.fabs(zscore.zscore_linear(peaks[i][1], points[peaks_idx[i-1] : right+1]))
+        scores.append(score)
 
     return np.array(scores)
 
 
-def significant_zscore_peaks(points, peaks_idx, t=1.0):
+def significant_zscore_peaks(points: np.ndarray, peaks_idx: np.ndarray, t:float=1.0) -> np.ndarray:
+    """
+    Returns the index of the significant peaks in a 2D curve.
+
+    This method uses the zscore metric to select a significant peak.
+
+    Args:
+        points (np.ndarray): numpy array with the points (x, y)
+        peaks_idx (np.ndarray): numpy array with the peak indexes
+        t (float): threshold of the z-score metric
+    
+    Returns:
+        np.ndarray: the indexes of the peak points
+    """
     scores = zscore_peaks_values(points, peaks_idx)
-    return scores > t
+    return peaks_idx[scores > t]
 
 
-def significant_zscore_peaks_iso(points, peaks_idx):
+def significant_zscore_peaks_iso(points: np.ndarray, peaks_idx: np.ndarray) -> np.ndarray:
+    """
+    Returns the index of the significant peaks in a 2D curve.
+
+    This method uses the zscore metric to select a significant peak.
+    The threshold is computed based on the iso_data thresholding algorithm.
+
+    Args:
+        points (np.ndarray): numpy array with the points (x, y)
+        peaks_idx (np.ndarray): numpy array with the peak indexes
+    
+    Returns:
+        np.ndarray: the indexes of the peak points
+    """
     scores = zscore_peaks_values(points, peaks_idx)
     positive_scores = scores[scores > 0]
     t = thresholding.isodata(positive_scores)
-    return scores > t
+    return peaks_idx[scores > t]
+
