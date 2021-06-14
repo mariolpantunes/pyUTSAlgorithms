@@ -15,16 +15,15 @@ from uts import zscore, thresholding
 
 def all_peaks(points: np.ndarray) -> np.ndarray:
     """
-    Returns all the peaks in a 2D curve
+    Returns the index of all the peaks in a 2D curve.
 
-    This version uses the next value as a aproximation.
+    A peak (y) is defined by the following expression: \( y_i-1 < y_i > y_i+1 \)
 
     Args:
-        values (np.ndarray): array of time series values
-        tau (float): half-life of EMA kernel
+        points (np.ndarray): numpy array with the points (x, y)
     
     Returns:
-        np.ndarray: the result array after aplying the EMA kernel
+        np.ndarray: the indexes of the peak points
     """
 
     peaks_idx = []
@@ -40,34 +39,46 @@ def all_peaks(points: np.ndarray) -> np.ndarray:
     return np.array(peaks_idx)
 
 
-def highest_peak(points, peaks_idx):
+def highest_peak(points: np.ndarray, peaks_idx: np.ndarray) -> int:
+    """
+    Returns the index of the highest peak in a curve.
 
-    h = 0
-    idx = -1
-
-    for i in range(0, len(points)):
-        if peaks_idx[i] and points[i][1] > h:
-            h = points[i][1]
-            idx = i
+    Args:
+        points (np.ndarray): numpy array with the points (x, y)
+        peaks_idx (np.ndarray): numpy array with the peak indexes
     
-    return idx
+    Returns:
+        int: the index of the highest peak
+    """
 
-def significant_peaks(points, peaks_idx, h=1.0):
-    peaks = points[peaks_idx]
-    m = np.mean(peaks, axis=0)[1]
-    s = np.std(peaks, axis=0)[1]
+    peaks = points[peaks_idx][:,1]
+    idx = np.argmax(peaks)
+    
+    return peaks_idx[idx]
+
+def significant_peaks(points: np.ndarray, peaks_idx: np.ndarray, h: float = 1.0) -> np.ndarray:
+    """
+    Returns the index of the significant peaks in a 2D curve.
+
+    A significant peak (y) is defined by the following definition: \( y > \overline{peaks} + h \times \sigma(peaks) \) 
+    
+    peak (y) is defined by the following expression: 
+
+    Args:
+        points (np.ndarray): numpy array with the points (x, y)
+    
+    Returns:
+        np.ndarray: the indexes of the peak points
+    """
+    peaks = points[peaks_idx][:,1]
+    m = np.mean(peaks)
+    s = np.std(peaks)
 
     significant = []
 
-    for i in range(0, len(points)):
-        if peaks_idx[i]:
-            value = points[i][1]
-            if value > (m+h*s):
-                significant.append(True)
-            else:
-                significant.append(False)
-        else:
-            significant.append(False)
+    for i in range(0, len(peaks)):
+        if peaks[i] > (m+h*s):
+            significant.append(peaks_idx[i])
 
     return np.array(significant)
 
@@ -129,48 +140,3 @@ def significant_zscore_peaks_iso(points, peaks_idx):
     positive_scores = scores[scores > 0]
     t = thresholding.isodata(positive_scores)
     return scores > t
-
-
-def mountaineer_peak_valley(points, threshold=1):
-
-    possible_peak = possible_valley = False
-    potential_peak_idx = potential_valley_idx = 0
-    potential_peak_value = potential_valley_value = 0
-    num_steps = 0
-
-    peaks = np.full((len(points)), False)
-    valley = np.full((len(points)), False)
-
-    for i in range(1, len(points)):
-        if points[i][1] > points[i-1][1]:
-            num_steps += 1
-            if not possible_valley:
-                possible_valley = True
-                potential_valley_idx = i-1
-                potential_valley_value = points[i-1][1]
-        else:
-            if num_steps >= threshold:
-                possible_peak = True
-                potential_peak_idx = i-1
-                potential_peak_value = points[i-1][1]
-            else:
-                if possible_valley:
-                    if points[i][1] <= potential_valley_value:
-                        potential_valley_idx = i
-                        potential_valley_value = points[i][1]
-                
-                if possible_peak:
-                    if points[i-1][1] > potential_valley_value:
-                        potential_peak_idx = i-1
-                        potential_peak_value = points[i-1][1]
-                    else:
-                        peaks[potential_peak_idx] = True
-                    
-                    if possible_valley:
-                        valley[potential_peak_idx] = True
-                        possible_valley = False
-                    
-                    threshold = int(0.6*num_steps)
-                    possible_peak = False
-            num_steps = 0
-    return peaks, valley
