@@ -13,9 +13,21 @@ import math
 from uts import zscore, thresholding
 
 
-def all_peaks(points):
+def all_peaks(points: np.ndarray) -> np.ndarray:
+    """
+    Returns all the peaks in a 2D curve
 
-    filter_array = [False]
+    This version uses the next value as a aproximation.
+
+    Args:
+        values (np.ndarray): array of time series values
+        tau (float): half-life of EMA kernel
+    
+    Returns:
+        np.ndarray: the result array after aplying the EMA kernel
+    """
+
+    peaks_idx = []
 
     for i in range(1, len(points) - 1):
         y0 = points[i-1][1]
@@ -23,12 +35,9 @@ def all_peaks(points):
         y1 = points[i+1][1]
 
         if y0 < y and y > y1:
-            filter_array.append(True)
-        else:
-            filter_array.append(False)
+            peaks_idx.append(i)
     
-    filter_array.append(False)
-    return np.array(filter_array)
+    return np.array(peaks_idx)
 
 
 def highest_peak(points, peaks_idx):
