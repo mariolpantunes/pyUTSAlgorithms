@@ -81,7 +81,7 @@ def significant_peaks(points: np.ndarray, peaks_idx: np.ndarray, h: float = 1.0)
         significant = []
 
         for i in range(0, len(peaks)):
-            if peaks[i] > (m+h*s):
+            if peaks[i] >= (m+h*s):
                 significant.append(peaks_idx[i])
 
         return np.array(significant)
