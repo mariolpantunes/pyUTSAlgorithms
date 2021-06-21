@@ -50,10 +50,14 @@ def highest_peak(points: np.ndarray, peaks_idx: np.ndarray) -> int:
         int: the index of the highest peak
     """
 
-    peaks = points[peaks_idx][:,1]
-    idx = np.argmax(peaks)
+    if peaks_idx.size != 0:
+        peaks = points[peaks_idx][:,1]
+        idx = np.argmax(peaks)
     
-    return peaks_idx[idx]
+        return peaks_idx[idx]
+    else:
+        return None
+        
 
 def significant_peaks(points: np.ndarray, peaks_idx: np.ndarray, h: float = 1.0) -> np.ndarray:
     """
@@ -69,17 +73,20 @@ def significant_peaks(points: np.ndarray, peaks_idx: np.ndarray, h: float = 1.0)
     Returns:
         np.ndarray: the indexes of the peak points
     """
-    peaks = points[peaks_idx][:,1]
-    m = np.mean(peaks)
-    s = np.std(peaks)
+    if peaks_idx.size != 0:
+        peaks = points[peaks_idx][:,1]
+        m = np.mean(peaks)
+        s = np.std(peaks)
 
-    significant = []
+        significant = []
 
-    for i in range(0, len(peaks)):
-        if peaks[i] > (m+h*s):
-            significant.append(peaks_idx[i])
+        for i in range(0, len(peaks)):
+            if peaks[i] > (m+h*s):
+                significant.append(peaks_idx[i])
 
-    return np.array(significant)
+        return np.array(significant)
+    else:
+        return None
 
 
 def find_next_tau(points:np.ndarray, i: int, tau: float) -> int:
@@ -157,8 +164,11 @@ def significant_zscore_peaks(points: np.ndarray, peaks_idx: np.ndarray, t:float=
     Returns:
         np.ndarray: the indexes of the peak points
     """
-    scores = zscore_peaks_values(points, peaks_idx)
-    return peaks_idx[scores > t]
+    if peaks_idx.size != 0:
+        scores = zscore_peaks_values(points, peaks_idx)
+        return peaks_idx[scores > t]
+    else:
+        return None
 
 
 def significant_zscore_peaks_iso(points: np.ndarray, peaks_idx: np.ndarray) -> np.ndarray:
@@ -175,8 +185,11 @@ def significant_zscore_peaks_iso(points: np.ndarray, peaks_idx: np.ndarray) -> n
     Returns:
         np.ndarray: the indexes of the peak points
     """
-    scores = zscore_peaks_values(points, peaks_idx)
-    positive_scores = scores[scores > 0]
-    t = thresholding.isodata(positive_scores)
-    return peaks_idx[scores > t]
+    if peaks_idx.size != 0:
+        scores = zscore_peaks_values(points, peaks_idx)
+        positive_scores = scores[scores > 0]
+        t = thresholding.isodata(positive_scores)
+        return peaks_idx[scores > t]
+    else:
+        return None
 
