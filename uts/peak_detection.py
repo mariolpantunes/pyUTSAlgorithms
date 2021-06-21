@@ -86,7 +86,7 @@ def significant_peaks(points: np.ndarray, peaks_idx: np.ndarray, h: float = 1.0)
 
         return np.array(significant)
     else:
-        return None
+        return []
 
 
 def find_next_tau(points:np.ndarray, i: int, tau: float) -> int:
@@ -168,7 +168,7 @@ def significant_zscore_peaks(points: np.ndarray, peaks_idx: np.ndarray, t:float=
         scores = zscore_peaks_values(points, peaks_idx)
         return peaks_idx[scores > t]
     else:
-        return None
+        return []
 
 
 def significant_zscore_peaks_iso(points: np.ndarray, peaks_idx: np.ndarray) -> np.ndarray:
@@ -191,5 +191,4 @@ def significant_zscore_peaks_iso(points: np.ndarray, peaks_idx: np.ndarray) -> n
         t = thresholding.isodata(positive_scores)
         return peaks_idx[scores > t]
     else:
-        return None
-
+        return []
