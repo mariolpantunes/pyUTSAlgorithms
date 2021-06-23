@@ -6,10 +6,8 @@ __email__ = 'mariolpantunes@gmail.com'
 __status__ = 'Development'
 
 
-import numpy as np
 import math
-
-
+import numpy as np
 from uts import zscore, thresholding
 
 
