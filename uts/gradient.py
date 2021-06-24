@@ -10,6 +10,13 @@ import math
 import numpy as np
 
 
+def lagrange_derivative(x, x0, x1, x2, y0, y1, y2):
+    p0 = y0 * (2*x-x1-x2) / ((x0-x1)*(x0-x2))
+    p1 = y1 * (2*x-x0-x2) / ((x1-x0)*(x1-x2))
+    p2 = y2 * (2*x-x0-x1) / ((x2-x0)*(x2-x1))
+    return p0+p1+p2
+
+
 def cfd(x: np.ndarray, y: np.ndarray) -> np.ndarray:
     """
     Computes the central first order derivative for uneven space sequences.
@@ -17,24 +24,29 @@ def cfd(x: np.ndarray, y: np.ndarray) -> np.ndarray:
     Args:
         x (np.ndarray): the value of the points in the x axis coordinates
         y (np.ndarray): the value of the points in the y axis coordinates
-    
+
     Returns:
         np.ndarray: the first order derivative
     """
-    
     d1 = []
 
     # compute the first point with the forward definition
-    d = (y[1] - y[0])/(x[1] - x[0])
+    y0, y1, y2 = y[0:3]
+    x0, x1, x2 = x[0:3]
+    d = lagrange_derivative(x0, x0, x1, x2, y0, y1, y2)
     d1.append(d)
 
     # compute n-2 points with the central definition
     for i in range(1, len(x) - 1):
-        d = (y[i+1] - y[i-1])/(x[i+1] - x[i-1])
+        y0, y1, y2 = y[i-1:i+2]
+        x0, x1, x2 = x[i-1:i+2]
+        d = lagrange_derivative(x1, x0, x1, x2, y0, y1, y2)
         d1.append(d)
 
     # compute the last point with the backwards definition
-    d = (y[-1] - y[-2]) / (x[-1] - x[-2])
+    y0, y1, y2 = y[-3:len(y)+1]
+    x0, x1, x2 = x[-3:len(x)+1]
+    d = lagrange_derivative(x2, x0, x1, x2, y0, y1, y2)
     d1.append(d)
 
     return np.array(d1)
@@ -49,14 +61,16 @@ def csd(x: np.ndarray, y: np.ndarray) -> np.ndarray:
     Args:
         x (np.ndarray): the value of the points in the x axis coordinates
         y (np.ndarray): the value of the points in the y axis coordinates
-    
+
     Returns:
         np.ndarray: the second order derivative
     """
     d2 = []
-    
+
     # compute the first point with the forward definition
-    d = (y[2] - 2*y[1] + y[0]) / ((x[2]-x[1])*(x[1]-x[0]))
+    y0, y1, y2 = y[0:3]
+    x0, x1, x2 = x[0:3]
+    d = 2.0 * ((x1-x0)*y2 - (x1-x0+x2-x1)*y1 + (x2-x1)*y0) / ((x1-x0)*(x2-x1)*(x1-x0+x2-x1))
     d2.append(d)
 
     # compute n-2 points with the central definition
@@ -66,9 +80,11 @@ def csd(x: np.ndarray, y: np.ndarray) -> np.ndarray:
         d = (2*y1/((x2-x1)*(x3-x1))) - \
             (2*y2/((x3-x2)*(x2-x1)))+(2*y3/((x3-x2)*(x3-x1)))
         d2.append(d)
-    
+
     # compute the last point with the backwards definition
-    d = (y[-1] - 2*y[-2] + y[-3]) / ((x[-1]-x[-2])*(x[-2]-x[-3]))
+    y2, y1, y0 = y[-3:len(y)+1]
+    x2, x1, x0 = x[-3:len(x)+1]
+    d = 2.0 * ((x1-x2)*y0 - (x1-x2+x0-x1)*y1 + (x0-x1)*y2) / ((x1-x2)*(x0-x1)*(x1-x2+x0-x1))
     d2.append(d)
 
     return np.array(d2)
