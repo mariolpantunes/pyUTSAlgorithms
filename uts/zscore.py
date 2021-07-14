@@ -10,7 +10,7 @@ import math
 import numpy as np
 
 
-def weighted_avg_and_std(values: np.ndarray, weights: np.ndarray) -> tuple[float, float]:
+def weighted_avg_and_std(values: np.ndarray, weights: np.ndarray):
     """
     Return the weighted average and standard deviation.
     
@@ -45,7 +45,7 @@ def zscore(xi: float, mean: float, std: float) -> float:
         return xi - mean
 
 
-def linear_delta_mapping_points(points: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+def linear_delta_mapping_points(points: np.ndarray):
     """
     Return a linear mapping from the sequence of points.
 
@@ -64,7 +64,7 @@ def linear_delta_mapping_points(points: np.ndarray) -> tuple[np.ndarray, np.ndar
     return linear_delta_mapping(x, y)
 
 
-def linear_delta_mapping(x: np.ndarray, y: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+def linear_delta_mapping(x: np.ndarray, y: np.ndarray):
     """
     Return a linear mapping from the sequence of points.
 
