@@ -6,10 +6,24 @@ __email__ = 'mariolpantunes@gmail.com'
 __status__ = 'Development'
 
 import numpy as np
-import math
 
 
-def trapezoid_left(x1,  x2,  x3,  y1,  y3):
+def trapezoid_left(x1:float, x2:float, x3:float, y1:float, y3:float) -> float:
+    """
+    Calculate the area of the trapezoid with corner coordinates (x2, 0), (x2, y2), (x3, 0), (x3, y3),
+    where y2 is obtained by linear interpolation of (x1, y1) and (x3, y3) evaluated at x2.
+
+    Args:
+        x1 (float): x coordinate
+        x2 (float): x coordinate
+        x3 (float): x coordinate
+        y1 (float): y coordinate
+        y3 (float): y coordinate
+    
+    Returns:
+        float: the area of the trapezoid
+    """
+
     # Degenerate cases
     if x2 == x3 or x2 < x1:
         return (x3 - x2) * y1
@@ -20,9 +34,22 @@ def trapezoid_left(x1,  x2,  x3,  y1,  y3):
     return (x3 - x2) * (y2 + y3) / 2
 
 
-# Calculate the area of the trapezoid with corner coordinates (x1, 0), (x1, y1), (x2, 0), (x2, y2),
-# where y2 is obtained by linear interpolation of (x1, y1) and (x3, y3) evaluated at x2.
-def trapezoid_right(x1,  x2,  x3,  y1,  y3):
+def trapezoid_right(x1,  x2,  x3,  y1,  y3) -> float:
+    """
+    Calculate the area of the trapezoid with corner coordinates (x1, 0), (x1, y1), (x2, 0), (x2, y2),
+    where y2 is obtained by linear interpolation of (x1, y1) and (x3, y3) evaluated at x2.
+
+    Args:
+        x1 (float): x coordinate
+        x2 (float): x coordinate
+        x3 (float): x coordinate
+        y1 (float): y coordinate
+        y3 (float): y coordinate
+    
+    Returns:
+        float: the area of the trapezoid
+    """
+    
     # Degenerate cases
     if x2 == x1 or x2 > x3:
         return (x2 - x1) * y1
@@ -32,8 +59,6 @@ def trapezoid_right(x1,  x2,  x3,  y1,  y3):
     y2 = y1 * w + y3 * (1 - w)
     return (x2 - x1) * (y1 + y2) / 2
 
-
-# SMA_last(X, width)
 
 def last(values: np.ndarray, width_before: float, width_after: float) -> np.ndarray:
     """
@@ -184,53 +209,20 @@ def linear(values: np.ndarray, width_before: float, width_after: float) -> np.nd
         t_right_new = values[i][0] + width_after
         while (right < n - 1) and (values[right + 1][0] <= t_right_new):
             right += 1
-            roll_area += values[right][1] * (values[right][0] - values[right - 1][0])
+            roll_area += (values[right][1] + values[right - 1][1])/2.0 * (values[right][0] - values[right - 1][0])
 
         # Shrink interval on left end
         t_left_new = values[i][0] - width_before
         while values[left][0] < t_left_new:
-            roll_area -= values[left+1][1] * (values[left+1][0] - values[left][0])
+            roll_area -= (values[left][1]+values[left+1][1])/2.0 * (values[left+1][0] - values[left][0])
             left += 1
     
         # Add truncated area on left and right end
-        left_area = values[left][1] * (values[left][0] - t_left_new)
-        right_area = values[right][1] * (t_right_new - values[right][0])
+        left_area = trapezoid_left(values[max(0,left-1)][0], t_left_new, values[left][0], values[max(0,left-1)][1], values[left][1])
+        right_area = trapezoid_right(values[right][0], t_right_new, values[min(right+1, n-1)][0], values[right][1], values[min(right+1, n-1)][1]) 
         roll_area += left_area + right_area
 
         # Save SMA value for current time window
         y = roll_area / (width_before + width_after)
         rv[i] = np.array([values[i][0], y])
     return rv
-
-"""
-  // Apply rolling window
-  for (int i = 1; i < *n; i++) {   
-    // Remove truncated area on left and right end
-    roll_area -= (left_area + right_area);
-    
-    // Expand interval on right end
-    t_right_new = times[i] + *width_after;
-    while ((right < *n - 1) && (times[right + 1] <= t_right_new)) {
-      right++;
-      roll_area += (values[right] + values[right - 1])/2 * (times[right] - times[right - 1]);
-    }
-    
-    // Shrink interval on left end
-    t_left_new = times[i] - *width_before;
-    while (times[left] < t_left_new) {
-      roll_area -= (values[left] + values[left+1]) / 2 *
-        (times[left+1] - times[left]);
-      left++;  
-    }
-    
-    // Add truncated area on left and right end
-    left_area = trapezoid_left(times[MAX(0, left-1)], t_left_new, times[left],
-      values[MAX(0, left-1)], values[left]);
-    right_area = trapezoid_right(times[right], t_right_new, times[MIN(right+1, *n-1)],
-      values[right], values[MIN(right+1, *n-1)]);
-    roll_area += left_area + right_area;
-    
-    // Save SMA value for current time window
-    values_new[i] = roll_area / (*width_before + *width_after);
-  }
-}"""
