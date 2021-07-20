@@ -97,8 +97,8 @@ def csd(x: np.ndarray, y: np.ndarray) -> np.ndarray:
     # compute the first point with the forward definition
     y0, y1, y2 = y[0:3]
     x0, x1, x2 = x[0:3]
-    d = 2.0 * ((x1-x0)*y2 - (x1-x0+x2-x1)*y1 + (x2-x1)*y0) / \
-        ((x1-x0)*(x2-x1)*(x1-x0+x2-x1))
+    d = 2.0 * ((x1-x0)*y2 - (x2-x0)*y1 + (x2-x1)*y0) / \
+        ((x1-x0)*(x2-x1)*(x2-x0))
     d2.append(d)
 
     # compute n-2 points with the central definition
@@ -112,8 +112,8 @@ def csd(x: np.ndarray, y: np.ndarray) -> np.ndarray:
     # compute the last point with the backwards definition
     y2, y1, y0 = y[-3:len(y)+1]
     x2, x1, x0 = x[-3:len(x)+1]
-    d = 2.0 * ((x1-x2)*y0 - (x1-x2+x0-x1)*y1 + (x0-x1)*y2) / \
-        ((x1-x2)*(x0-x1)*(x1-x2+x0-x1))
+    d = 2.0 * ((x1-x2)*y0 - (x0-x2)*y1 + (x0-x1)*y2) / \
+        ((x1-x2)*(x0-x1)*(x0-x2))
     d2.append(d)
 
     return np.array(d2)

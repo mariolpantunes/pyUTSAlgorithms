@@ -17,5 +17,4 @@ setup(
       author_email='mariolpantunes@gmail.com',
       url='https://github.com/mariolpantunes/uts',
       packages=find_packages(),
-      install_requires=['numpy>=1.20.3']
 )
