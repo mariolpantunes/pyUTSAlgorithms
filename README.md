@@ -16,7 +16,7 @@ python -m unittest
 ## Documentation
 
 This library was documented using the google style docstring, it can be accessed [here](https://mariolpantunes.github.io/uts/).
-Run the following commands to the produce the documentation for this library.
+Run the following commands to produce the documentation for this library.
 
 ```bash
 pip install pdoc3
