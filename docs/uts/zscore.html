@@ -39,7 +39,7 @@ import math
 import numpy as np
 
 
-def weighted_avg_and_std(values: np.ndarray, weights: np.ndarray) -&gt; tuple[float, float]:
+def weighted_avg_and_std(values: np.ndarray, weights: np.ndarray) -&gt; tuple:
     &#34;&#34;&#34;
     Return the weighted average and standard deviation.
     
@@ -53,7 +53,7 @@ def weighted_avg_and_std(values: np.ndarray, weights: np.ndarray) -&gt; tuple[fl
     average = np.average(values, weights=weights)
     # Fast and numerically precise:
     variance = np.average((values-average)**2, weights=weights)
-    return (average, math.sqrt(variance))
+    return average, math.sqrt(variance)
 
 
 def zscore(xi: float, mean: float, std: float) -&gt; float:
@@ -74,7 +74,7 @@ def zscore(xi: float, mean: float, std: float) -&gt; float:
         return xi - mean
 
 
-def linear_delta_mapping_points(points: np.ndarray) -&gt; tuple[np.ndarray, np.ndarray]:
+def linear_delta_mapping_points(points: np.ndarray) -&gt; tuple:
     &#34;&#34;&#34;
     Return a linear mapping from the sequence of points.
 
@@ -93,7 +93,7 @@ def linear_delta_mapping_points(points: np.ndarray) -&gt; tuple[np.ndarray, np.n
     return linear_delta_mapping(x, y)
 
 
-def linear_delta_mapping(x: np.ndarray, y: np.ndarray) -&gt; tuple[np.ndarray, np.ndarray]:
+def linear_delta_mapping(x: np.ndarray, y: np.ndarray) -&gt; tuple:
     &#34;&#34;&#34;
     Return a linear mapping from the sequence of points.
 
@@ -205,7 +205,7 @@ The weight is proportional to the delta in the x axis.</p>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def linear_delta_mapping(x: np.ndarray, y: np.ndarray) -&gt; tuple[np.ndarray, np.ndarray]:
+<pre><code class="python">def linear_delta_mapping(x: np.ndarray, y: np.ndarray) -&gt; tuple:
     &#34;&#34;&#34;
     Return a linear mapping from the sequence of points.
 
@@ -247,7 +247,7 @@ The weight is proportional to the delta in the x axis.</p>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def linear_delta_mapping_points(points: np.ndarray) -&gt; tuple[np.ndarray, np.ndarray]:
+<pre><code class="python">def linear_delta_mapping_points(points: np.ndarray) -&gt; tuple:
     &#34;&#34;&#34;
     Return a linear mapping from the sequence of points.
 
@@ -287,7 +287,7 @@ The weight is proportional to the delta in the x axis.</p>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def weighted_avg_and_std(values: np.ndarray, weights: np.ndarray) -&gt; tuple[float, float]:
+<pre><code class="python">def weighted_avg_and_std(values: np.ndarray, weights: np.ndarray) -&gt; tuple:
     &#34;&#34;&#34;
     Return the weighted average and standard deviation.
     
@@ -301,7 +301,7 @@ The weight is proportional to the delta in the x axis.</p>
     average = np.average(values, weights=weights)
     # Fast and numerically precise:
     variance = np.average((values-average)**2, weights=weights)
-    return (average, math.sqrt(variance))</code></pre>
+    return average, math.sqrt(variance)</code></pre>
 </details>
 </dd>
 <dt id="uts.zscore.zscore"><code class="name flex">

@@ -1,5 +1,4 @@
 import unittest
-from unittest import result
 import numpy as np
 import numpy.testing as npt
 
@@ -29,9 +28,9 @@ class Test_Peaks(unittest.TestCase):
                            [12.0, 3.0], [13.0, 0.0], [14.0, 4.0], [15.0, -2.0],
                            [16.0, 7.0], [17.0, -7.0], [18.0, -3.0], [19.0, 0.0], [20.0, 5.0]])
         result = peak_detection.all_peaks(points)
-        desired = np.array([2,10,13,15])
+        desired = np.array([2, 10, 13, 15])
         npt.assert_equal(result, desired)
-    
+
     def test_highest_peak(self):
         points = np.array([[1.0, 5.0], [2.0, -2.0], [3.0, 3.0],
                            [4.0, 1.0], [5.0, 1.0], [6.0, 4.0], [7.0, 4.0],
@@ -42,7 +41,7 @@ class Test_Peaks(unittest.TestCase):
         result = peak_detection.highest_peak(points, peaks_idx)
         desired = 15
         npt.assert_equal(result, desired)
-    
+
     def test_highest_peak_empty(self):
         points = np.array([[1.0, 5.0], [2.0, -2.0], [3.0, 3.0],
                            [4.0, 1.0], [5.0, 1.0], [6.0, 4.0], [7.0, 4.0],
@@ -85,7 +84,7 @@ class Test_Peaks(unittest.TestCase):
                            [16.0, 7.0], [17.0, -7.0], [18.0, -3.0], [19.0, 0.0], [20.0, 5.0]])
         peaks_idx = peak_detection.all_peaks(points)
         result = peak_detection.significant_zscore_peaks(points, peaks_idx)
-        desired = np.array([2,10,13,15])
+        desired = np.array([2, 10, 13, 15])
         npt.assert_equal(result, desired)
 
     def test_significant_zscore_peaks_iso(self):
@@ -96,7 +95,34 @@ class Test_Peaks(unittest.TestCase):
                            [16.0, 7.0], [17.0, -7.0], [18.0, -3.0], [19.0, 0.0], [20.0, 5.0]])
         peaks_idx = peak_detection.all_peaks(points)
         result = peak_detection.significant_zscore_peaks_iso(points, peaks_idx)
-        desired = np.array([2,10,15])
+        desired = np.array([2, 10, 15])
+        npt.assert_equal(result, desired)
+
+    def test_kneedle_peak_detection_00(self):
+        points = np.array([[.1, -.5], [.2, 0], [.3, 1.66],
+                          [.4, 2.5], [.5, 3], [.6, 3.33],
+                          [.7, 3.57], [.8, 3.75], [.9, 3.88]])
+        pmin = points.min(axis=0)
+        pmax = points.max(axis=0)
+        Dn = (points - pmin)/(pmax - pmin)
+        x = Dn[:, 0]
+        y = Dn[:, 1]
+        y_d = y - x
+        Dd = np.column_stack((x, y_d))
+        peaks_idx = peak_detection.all_peaks(Dd)
+        result = peak_detection.kneedle_peak_detection(Dd, peaks_idx)
+        desired = np.array([3])
+        npt.assert_equal(result, desired)
+
+    def test_kneedle_peak_detection_01(self):
+        points = np.array([[1.0, 5.0], [2.0, -2.0], [3.0, 3.0],
+                           [4.0, 1.0], [5.0, 1.0], [6.0, 4.0], [7.0, 4.0],
+                           [8.0, -3.0], [9.0, -3.0], [10.0, -5.0], [11.0, 6.0],
+                           [12.0, 3.0], [13.0, 0.0], [14.0, 4.0], [15.0, -2.0],
+                           [16.0, 7.0], [17.0, -7.0], [18.0, -3.0], [19.0, 0.0], [20.0, 5.0]])
+        peaks_idx = peak_detection.all_peaks(points)
+        result = peak_detection.kneedle_peak_detection(points, peaks_idx)
+        desired = np.array([2, 10, 13, 15])
         npt.assert_equal(result, desired)
 
 

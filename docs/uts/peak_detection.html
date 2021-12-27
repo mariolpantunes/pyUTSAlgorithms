@@ -48,7 +48,7 @@ def all_peaks(points: np.ndarray) -&gt; np.ndarray:
 
     Args:
         points (np.ndarray): numpy array with the points (x, y)
-    
+
     Returns:
         np.ndarray: the indexes of the peak points
     &#34;&#34;&#34;
@@ -62,7 +62,7 @@ def all_peaks(points: np.ndarray) -&gt; np.ndarray:
 
         if y0 &lt; y and y &gt; y1:
             peaks_idx.append(i)
-    
+
     return np.array(peaks_idx)
 
 
@@ -73,19 +73,19 @@ def highest_peak(points: np.ndarray, peaks_idx: np.ndarray) -&gt; int:
     Args:
         points (np.ndarray): numpy array with the points (x, y)
         peaks_idx (np.ndarray): numpy array with the peak indexes
-    
+
     Returns:
         int: the index of the highest peak
     &#34;&#34;&#34;
 
     if peaks_idx.size != 0:
-        peaks = points[peaks_idx][:,1]
+        peaks = points[peaks_idx][:, 1]
         idx = np.argmax(peaks)
-    
+
         return peaks_idx[idx]
     else:
         return None
-        
+
 
 def significant_peaks(points: np.ndarray, peaks_idx: np.ndarray, h: float = 1.0) -&gt; np.ndarray:
     &#34;&#34;&#34;
@@ -97,12 +97,12 @@ def significant_peaks(points: np.ndarray, peaks_idx: np.ndarray, h: float = 1.0)
         points (np.ndarray): numpy array with the points (x, y)
         peaks_idx (np.ndarray): numpy array with the peak indexes
         h (float): weight of the standart deviation
-    
+
     Returns:
         np.ndarray: the indexes of the peak points
     &#34;&#34;&#34;
     if peaks_idx.size != 0:
-        peaks = points[peaks_idx][:,1]
+        peaks = points[peaks_idx][:, 1]
         m = np.mean(peaks)
         s = np.std(peaks)
 
@@ -114,10 +114,10 @@ def significant_peaks(points: np.ndarray, peaks_idx: np.ndarray, h: float = 1.0)
 
         return np.array(significant)
     else:
-        return []
+        return np.array([])
 
 
-def find_next_tau(points:np.ndarray, i: int, tau: float) -&gt; int:
+def find_next_tau(points: np.ndarray, i: int, tau: float) -&gt; int:
     &#34;&#34;&#34;
     Returns the index of the next step.
 
@@ -128,22 +128,22 @@ def find_next_tau(points:np.ndarray, i: int, tau: float) -&gt; int:
         points (np.ndarray): numpy array with the points (x, y)
         i (int): index where the search starts
         tau (float): time duration that needs to be exceeded 
-    
+
     Returns:
         int: the index of the next step
     &#34;&#34;&#34;
-    
+
     if i == len(points)-1:
         return i
-    
-    durations = points[i+1:,0] - points[i:-1,0]
+
+    durations = points[i+1:, 0] - points[i:-1, 0]
     cumulative_durations = np.cumsum(durations)
-    idx = cumulative_durations[cumulative_durations&gt;tau]
-    idx = np.argmax(cumulative_durations&gt;tau)
-    
+    idx = cumulative_durations[cumulative_durations &gt; tau]
+    idx = np.argmax(cumulative_durations &gt; tau)
+
     if idx == 0:
         return len(points)-1
-    
+
     return i+idx+1
 
 
@@ -156,7 +156,7 @@ def zscore_peaks_values(points: np.ndarray, peaks_idx: np.ndarray) -&gt; np.ndar
     Args:
         points (np.ndarray): numpy array with the points (x, y)
         peaks_idx (np.ndarray): numpy array with the peak indexes
-    
+
     Returns:
         np.ndarry: z-score values of each peak
     &#34;&#34;&#34;
@@ -164,21 +164,22 @@ def zscore_peaks_values(points: np.ndarray, peaks_idx: np.ndarray) -&gt; np.ndar
     scores = []
 
     # first peak
-    tau =  peaks[0][0] - points[0][0]
+    tau = peaks[0][0] - points[0][0]
     right = find_next_tau(points, peaks_idx[0], tau)
-    score = math.fabs(zscore.zscore_linear(peaks[0][1], points[0 : right+1]))
+    score = math.fabs(zscore.zscore_linear(peaks[0][1], points[0: right+1]))
     scores.append(score)
 
     for i in range(1, len(peaks)):
         tau = peaks[i][0] - peaks[i-1][0]
         right = find_next_tau(points, peaks_idx[i], tau)
-        score = math.fabs(zscore.zscore_linear(peaks[i][1], points[peaks_idx[i-1] : right+1]))
+        score = math.fabs(zscore.zscore_linear(
+            peaks[i][1], points[peaks_idx[i-1]: right+1]))
         scores.append(score)
 
     return np.array(scores)
 
 
-def significant_zscore_peaks(points: np.ndarray, peaks_idx: np.ndarray, t:float=1.0) -&gt; np.ndarray:
+def significant_zscore_peaks(points: np.ndarray, peaks_idx: np.ndarray, t: float = 1.0) -&gt; np.ndarray:
     &#34;&#34;&#34;
     Returns the index of the significant peaks in a 2D curve.
 
@@ -188,7 +189,7 @@ def significant_zscore_peaks(points: np.ndarray, peaks_idx: np.ndarray, t:float=
         points (np.ndarray): numpy array with the points (x, y)
         peaks_idx (np.ndarray): numpy array with the peak indexes
         t (float): threshold of the z-score metric
-    
+
     Returns:
         np.ndarray: the indexes of the peak points
     &#34;&#34;&#34;
@@ -196,7 +197,7 @@ def significant_zscore_peaks(points: np.ndarray, peaks_idx: np.ndarray, t:float=
         scores = zscore_peaks_values(points, peaks_idx)
         return peaks_idx[scores &gt; t]
     else:
-        return []
+        return np.array([])
 
 
 def significant_zscore_peaks_iso(points: np.ndarray, peaks_idx: np.ndarray) -&gt; np.ndarray:
@@ -209,7 +210,7 @@ def significant_zscore_peaks_iso(points: np.ndarray, peaks_idx: np.ndarray) -&gt
     Args:
         points (np.ndarray): numpy array with the points (x, y)
         peaks_idx (np.ndarray): numpy array with the peak indexes
-    
+
     Returns:
         np.ndarray: the indexes of the peak points
     &#34;&#34;&#34;
@@ -219,7 +220,42 @@ def significant_zscore_peaks_iso(points: np.ndarray, peaks_idx: np.ndarray) -&gt
         t = thresholding.isodata(positive_scores)
         return peaks_idx[scores &gt; t]
     else:
-        return []</code></pre>
+        return np.array([])
+
+
+def kneedle_peak_detection(points: np.ndarray, peaks_idx: np.ndarray, s: float = 1.0) -&gt; np.ndarray:
+    &#34;&#34;&#34;
+    Returns the index of the significant peaks in a 2D curve.
+
+    This method uses the [Kneedle](https://ieeexplore.ieee.org/document/5961514) algorithm to select a significant peak.
+
+    Args:
+        points (np.ndarray): numpy array with the points (x, y)
+        peaks_idx (np.ndarray): numpy array with the peak indexes
+        t (float): sensitivity
+
+    Returns:
+        np.ndarray: the indexes of the peak points
+    &#34;&#34;&#34;
+    if peaks_idx.size != 0:
+
+        x = points[:, 0]
+        y = points[:, 1]
+        y_peaks = y[peaks_idx]
+        n = len(x)
+
+        t_lm = y_peaks - s * np.sum(np.diff(x)) / (n - 1)
+        knee_points_index = []
+
+        for index, i in enumerate(peaks_idx):
+            for j in range(0, len(y)):
+                if j &gt; i and y[j] &lt;= t_lm[index]:
+                    knee_points_index.append(i)
+                    break
+
+        return np.array(knee_points_index)
+    else:
+        return np.array([])</code></pre>
 </details>
 </section>
 <section>
@@ -257,7 +293,7 @@ def significant_zscore_peaks_iso(points: np.ndarray, peaks_idx: np.ndarray) -&gt
 
     Args:
         points (np.ndarray): numpy array with the points (x, y)
-    
+
     Returns:
         np.ndarray: the indexes of the peak points
     &#34;&#34;&#34;
@@ -271,7 +307,7 @@ def significant_zscore_peaks_iso(points: np.ndarray, peaks_idx: np.ndarray) -&gt
 
         if y0 &lt; y and y &gt; y1:
             peaks_idx.append(i)
-    
+
     return np.array(peaks_idx)</code></pre>
 </details>
 </dd>
@@ -300,7 +336,7 @@ This is necessary since the sequence is uneven.</p>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def find_next_tau(points:np.ndarray, i: int, tau: float) -&gt; int:
+<pre><code class="python">def find_next_tau(points: np.ndarray, i: int, tau: float) -&gt; int:
     &#34;&#34;&#34;
     Returns the index of the next step.
 
@@ -311,22 +347,22 @@ This is necessary since the sequence is uneven.</p>
         points (np.ndarray): numpy array with the points (x, y)
         i (int): index where the search starts
         tau (float): time duration that needs to be exceeded 
-    
+
     Returns:
         int: the index of the next step
     &#34;&#34;&#34;
-    
+
     if i == len(points)-1:
         return i
-    
-    durations = points[i+1:,0] - points[i:-1,0]
+
+    durations = points[i+1:, 0] - points[i:-1, 0]
     cumulative_durations = np.cumsum(durations)
-    idx = cumulative_durations[cumulative_durations&gt;tau]
-    idx = np.argmax(cumulative_durations&gt;tau)
-    
+    idx = cumulative_durations[cumulative_durations &gt; tau]
+    idx = np.argmax(cumulative_durations &gt; tau)
+
     if idx == 0:
         return len(points)-1
-    
+
     return i+idx+1</code></pre>
 </details>
 </dd>
@@ -358,18 +394,77 @@ This is necessary since the sequence is uneven.</p>
     Args:
         points (np.ndarray): numpy array with the points (x, y)
         peaks_idx (np.ndarray): numpy array with the peak indexes
-    
+
     Returns:
         int: the index of the highest peak
     &#34;&#34;&#34;
 
     if peaks_idx.size != 0:
-        peaks = points[peaks_idx][:,1]
+        peaks = points[peaks_idx][:, 1]
         idx = np.argmax(peaks)
-    
+
         return peaks_idx[idx]
     else:
         return None</code></pre>
+</details>
+</dd>
+<dt id="uts.peak_detection.kneedle_peak_detection"><code class="name flex">
+<span>def <span class="ident">kneedle_peak_detection</span></span>(<span>points: numpy.ndarray, peaks_idx: numpy.ndarray, s: float = 1.0) ‑> numpy.ndarray</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Returns the index of the significant peaks in a 2D curve.</p>
+<p>This method uses the <a href="https://ieeexplore.ieee.org/document/5961514">Kneedle</a> algorithm to select a significant peak.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>points</code></strong> :&ensp;<code>np.ndarray</code></dt>
+<dd>numpy array with the points (x, y)</dd>
+<dt><strong><code>peaks_idx</code></strong> :&ensp;<code>np.ndarray</code></dt>
+<dd>numpy array with the peak indexes</dd>
+<dt><strong><code>t</code></strong> :&ensp;<code>float</code></dt>
+<dd>sensitivity</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>np.ndarray</code></dt>
+<dd>the indexes of the peak points</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def kneedle_peak_detection(points: np.ndarray, peaks_idx: np.ndarray, s: float = 1.0) -&gt; np.ndarray:
+    &#34;&#34;&#34;
+    Returns the index of the significant peaks in a 2D curve.
+
+    This method uses the [Kneedle](https://ieeexplore.ieee.org/document/5961514) algorithm to select a significant peak.
+
+    Args:
+        points (np.ndarray): numpy array with the points (x, y)
+        peaks_idx (np.ndarray): numpy array with the peak indexes
+        t (float): sensitivity
+
+    Returns:
+        np.ndarray: the indexes of the peak points
+    &#34;&#34;&#34;
+    if peaks_idx.size != 0:
+
+        x = points[:, 0]
+        y = points[:, 1]
+        y_peaks = y[peaks_idx]
+        n = len(x)
+
+        t_lm = y_peaks - s * np.sum(np.diff(x)) / (n - 1)
+        knee_points_index = []
+
+        for index, i in enumerate(peaks_idx):
+            for j in range(0, len(y)):
+                if j &gt; i and y[j] &lt;= t_lm[index]:
+                    knee_points_index.append(i)
+                    break
+
+        return np.array(knee_points_index)
+    else:
+        return np.array([])</code></pre>
 </details>
 </dd>
 <dt id="uts.peak_detection.significant_peaks"><code class="name flex">
@@ -406,12 +501,12 @@ This is necessary since the sequence is uneven.</p>
         points (np.ndarray): numpy array with the points (x, y)
         peaks_idx (np.ndarray): numpy array with the peak indexes
         h (float): weight of the standart deviation
-    
+
     Returns:
         np.ndarray: the indexes of the peak points
     &#34;&#34;&#34;
     if peaks_idx.size != 0:
-        peaks = points[peaks_idx][:,1]
+        peaks = points[peaks_idx][:, 1]
         m = np.mean(peaks)
         s = np.std(peaks)
 
@@ -423,7 +518,7 @@ This is necessary since the sequence is uneven.</p>
 
         return np.array(significant)
     else:
-        return []</code></pre>
+        return np.array([])</code></pre>
 </details>
 </dd>
 <dt id="uts.peak_detection.significant_zscore_peaks"><code class="name flex">
@@ -450,7 +545,7 @@ This is necessary since the sequence is uneven.</p>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def significant_zscore_peaks(points: np.ndarray, peaks_idx: np.ndarray, t:float=1.0) -&gt; np.ndarray:
+<pre><code class="python">def significant_zscore_peaks(points: np.ndarray, peaks_idx: np.ndarray, t: float = 1.0) -&gt; np.ndarray:
     &#34;&#34;&#34;
     Returns the index of the significant peaks in a 2D curve.
 
@@ -460,7 +555,7 @@ This is necessary since the sequence is uneven.</p>
         points (np.ndarray): numpy array with the points (x, y)
         peaks_idx (np.ndarray): numpy array with the peak indexes
         t (float): threshold of the z-score metric
-    
+
     Returns:
         np.ndarray: the indexes of the peak points
     &#34;&#34;&#34;
@@ -468,7 +563,7 @@ This is necessary since the sequence is uneven.</p>
         scores = zscore_peaks_values(points, peaks_idx)
         return peaks_idx[scores &gt; t]
     else:
-        return []</code></pre>
+        return np.array([])</code></pre>
 </details>
 </dd>
 <dt id="uts.peak_detection.significant_zscore_peaks_iso"><code class="name flex">
@@ -504,7 +599,7 @@ The threshold is computed based on the iso_data thresholding algorithm.</p>
     Args:
         points (np.ndarray): numpy array with the points (x, y)
         peaks_idx (np.ndarray): numpy array with the peak indexes
-    
+
     Returns:
         np.ndarray: the indexes of the peak points
     &#34;&#34;&#34;
@@ -514,7 +609,7 @@ The threshold is computed based on the iso_data thresholding algorithm.</p>
         t = thresholding.isodata(positive_scores)
         return peaks_idx[scores &gt; t]
     else:
-        return []</code></pre>
+        return np.array([])</code></pre>
 </details>
 </dd>
 <dt id="uts.peak_detection.zscore_peaks_values"><code class="name flex">
@@ -548,7 +643,7 @@ The threshold is computed based on the iso_data thresholding algorithm.</p>
     Args:
         points (np.ndarray): numpy array with the points (x, y)
         peaks_idx (np.ndarray): numpy array with the peak indexes
-    
+
     Returns:
         np.ndarry: z-score values of each peak
     &#34;&#34;&#34;
@@ -556,15 +651,16 @@ The threshold is computed based on the iso_data thresholding algorithm.</p>
     scores = []
 
     # first peak
-    tau =  peaks[0][0] - points[0][0]
+    tau = peaks[0][0] - points[0][0]
     right = find_next_tau(points, peaks_idx[0], tau)
-    score = math.fabs(zscore.zscore_linear(peaks[0][1], points[0 : right+1]))
+    score = math.fabs(zscore.zscore_linear(peaks[0][1], points[0: right+1]))
     scores.append(score)
 
     for i in range(1, len(peaks)):
         tau = peaks[i][0] - peaks[i-1][0]
         right = find_next_tau(points, peaks_idx[i], tau)
-        score = math.fabs(zscore.zscore_linear(peaks[i][1], points[peaks_idx[i-1] : right+1]))
+        score = math.fabs(zscore.zscore_linear(
+            peaks[i][1], points[peaks_idx[i-1]: right+1]))
         scores.append(score)
 
     return np.array(scores)</code></pre>
@@ -591,6 +687,7 @@ The threshold is computed based on the iso_data thresholding algorithm.</p>
 <li><code><a title="uts.peak_detection.all_peaks" href="#uts.peak_detection.all_peaks">all_peaks</a></code></li>
 <li><code><a title="uts.peak_detection.find_next_tau" href="#uts.peak_detection.find_next_tau">find_next_tau</a></code></li>
 <li><code><a title="uts.peak_detection.highest_peak" href="#uts.peak_detection.highest_peak">highest_peak</a></code></li>
+<li><code><a title="uts.peak_detection.kneedle_peak_detection" href="#uts.peak_detection.kneedle_peak_detection">kneedle_peak_detection</a></code></li>
 <li><code><a title="uts.peak_detection.significant_peaks" href="#uts.peak_detection.significant_peaks">significant_peaks</a></code></li>
 <li><code><a title="uts.peak_detection.significant_zscore_peaks" href="#uts.peak_detection.significant_zscore_peaks">significant_zscore_peaks</a></code></li>
 <li><code><a title="uts.peak_detection.significant_zscore_peaks_iso" href="#uts.peak_detection.significant_zscore_peaks_iso">significant_zscore_peaks_iso</a></code></li>
