@@ -37,6 +37,32 @@ def all_peaks(points: np.ndarray) -> np.ndarray:
     return np.array(peaks_idx)
 
 
+def all_valleys(points: np.ndarray) -> np.ndarray:
+    """
+    Returns the index of all the valleys in a 2D curve.
+
+    A valley (y) is defined by the following expression: \\( y_i-1 > y_i < y_i+1 \\)
+
+    Args:
+        points (np.ndarray): numpy array with the points (x, y)
+
+    Returns:
+        np.ndarray: the indexes of the peak points
+    """
+
+    valleys_idx = []
+
+    for i in range(1, len(points) - 1):
+        y0 = points[i-1][1]
+        y = points[i][1]
+        y1 = points[i+1][1]
+
+        if y0 > y and y < y1:
+            valleys_idx.append(i)
+
+    return np.array(valleys_idx)
+
+
 def highest_peak(points: np.ndarray, peaks_idx: np.ndarray) -> int:
     """
     Returns the index of the highest peak in a curve.
@@ -213,16 +239,24 @@ def kneedle_peak_detection(points: np.ndarray, peaks_idx: np.ndarray, s: float =
         x = points[:, 0]
         y = points[:, 1]
         y_peaks = y[peaks_idx]
-        n = len(x)
-
-        t_lm = y_peaks - s * np.sum(np.diff(x)) / (n - 1)
+        valleys_idx = all_valleys(points)
+        
+        t_lm = y_peaks - s * np.abs(np.diff(x).mean())
         knee_points_index = []
 
-        for index, i in enumerate(peaks_idx):
-            for j in range(0, len(y)):
-                if j > i and y[j] <= t_lm[index]:
-                    knee_points_index.append(i)
-                    break
+        threshold = j = knee_idx = 0
+        for i in range(0, len(y)-1):
+            if i in peaks_idx:
+                threshold = t_lm[j]
+                j += 1
+                knee_idx = i
+            
+            if i in valleys_idx:
+                threshold = 0.0
+
+            if y[i] <= threshold and knee_idx > 0:
+                knee_points_index.append(knee_idx)
+                knee_idx = -1
 
         return np.array(knee_points_index)
     else:

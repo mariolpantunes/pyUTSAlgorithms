@@ -31,6 +31,16 @@ class Test_Peaks(unittest.TestCase):
         desired = np.array([2, 10, 13, 15])
         npt.assert_equal(result, desired)
 
+    def test_all_valleys(self):
+        points = np.array([[1.0, 5.0], [2.0, -2.0], [3.0, 3.0],
+                           [4.0, 1.0], [5.0, 1.0], [6.0, 4.0], [7.0, 4.0],
+                           [8.0, -3.0], [9.0, -3.0], [10.0, -5.0], [11.0, 6.0],
+                           [12.0, 3.0], [13.0, 0.0], [14.0, 4.0], [15.0, -2.0],
+                           [16.0, 7.0], [17.0, -7.0], [18.0, -3.0], [19.0, 0.0], [20.0, 5.0]])
+        result = peak_detection.all_valleys(points)
+        desired = np.array([1, 9, 12, 14, 16])
+        npt.assert_equal(result, desired)
+
     def test_highest_peak(self):
         points = np.array([[1.0, 5.0], [2.0, -2.0], [3.0, 3.0],
                            [4.0, 1.0], [5.0, 1.0], [6.0, 4.0], [7.0, 4.0],
