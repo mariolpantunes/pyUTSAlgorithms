@@ -5,7 +5,7 @@ import pathlib
 
 here = pathlib.Path(__file__).parent.resolve()
 
-long_description = (here / 'README.md').read_text(encoding='utf-8')
+long_description = (here/'README.md').read_text(encoding='utf-8')
 
 setup(
       name='uts',
@@ -17,5 +17,5 @@ setup(
       author_email='mariolpantunes@gmail.com',
       url='https://github.com/mariolpantunes/uts',
       packages=find_packages(),
-      install_requires=['numpy>=1.21.1']
+      install_requires=['numpy>=1.22.0']
 )
