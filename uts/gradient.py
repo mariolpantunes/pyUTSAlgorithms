@@ -19,7 +19,6 @@ def lagrange_derivative(x: float, x0: float, x1: float, x2: float, y0: float, y1
     Depending od the value of \\(x\\), we can compute the forward,
     backward or central derivative.
 
-
     Args:
         x (float): the value where the derivative will be computed
         x0 (float): first x value
