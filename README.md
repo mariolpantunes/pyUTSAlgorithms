@@ -2,7 +2,7 @@
 
 Unevenly Spaced Time Series: Moving Averages and Other Rolling Operators
 This repository started as a conversion of the code from this [one](https://github.com/andreas50/utsAlgorithms).
-Right now in contains more algorithms that help while dealing with Unevenly Spaced Time Series.
+Right now the library contains more algorithms that help while dealing with Unevenly Spaced Time Series, for more details check the [here](##documentation)
 
 ## Running unit tests
 
