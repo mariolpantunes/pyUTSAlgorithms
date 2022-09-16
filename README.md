@@ -1,7 +1,8 @@
 # UTS (Unevenly Spaced Time Series)
 
 Unevenly Spaced Time Series: Moving Averages and Other Rolling Operators
-This repository was a conversion of the code from this [one](https://github.com/andreas50/utsAlgorithms).
+This repository started as a conversion of the code from this [one](https://github.com/andreas50/utsAlgorithms).
+Right now in contains more algorithms that help while dealing with Unevenly Spaced Time Series.
 
 ## Running unit tests
 
@@ -24,5 +25,20 @@ pdoc --math -d google -o docs uts
 ```
 
 ## Instalation
+
+The library can be used by adding this line to the requirement.txt file:
+```txt
+git+https://github.com/mariolpantunes/knee@main#egg=knee
+```
+
+## Authors
+
+* **Mário Antunes** - [mariolpantunes](https://github.com/mariolpantunes)
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details
+
+## Status
 
 ![Python CI](https://github.com/mariolpantunes/uts/workflows/Python%20CI/badge.svg)
