@@ -28,7 +28,7 @@ pdoc --math -d google -o docs uts
 
 The library can be used by adding this line to the requirement.txt file:
 ```txt
-git+https://github.com/mariolpantunes/knee@main#egg=knee
+git+https://github.com/mariolpantunes/uts@main#egg=knee
 ```
 
 ## Authors
