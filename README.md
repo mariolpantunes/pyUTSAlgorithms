@@ -1,4 +1,4 @@
-# pyUTS (Unevenly Spaced Time Series)
+# pyUTSAlgorithms (Unevenly Spaced Time Series Algorithms)
 
 Unevenly Spaced Time Series: Moving Averages and Other Rolling Operators
 This repository started as a conversion of the code from this [one](https://github.com/andreas50/utsAlgorithms).
