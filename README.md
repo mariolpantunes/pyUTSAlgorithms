@@ -21,7 +21,7 @@ Run the following commands to produce the documentation for this library.
 
 ```bash
 pip install pdoc
-pdoc --math -d google -o docs uts
+pdoc --math -d google -o docs src/uts
 ```
 
 ## Instalation
