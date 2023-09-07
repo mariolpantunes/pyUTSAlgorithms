@@ -29,7 +29,6 @@ class TestZScore(unittest.TestCase):
         points = np.array([[1,1], [2,2], [3,3], [4,4], [5,5], [6,6]])
         result = zscore.zscore_array_points(points)
         desired = np.array([-1.76776695, -1.06066017, -0.35355339,  0.35355339,  1.06066017,  1.76776695])
-        #print(result)
         np.testing.assert_array_almost_equal(result, desired, decimal=6)
 
 if __name__ == '__main__':

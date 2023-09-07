@@ -6,7 +6,6 @@ from uts import peak_detection
 
 
 class Test_Peaks(unittest.TestCase):
-
     def test_find_next_tau(self):
         points = np.array(
             [[1.0, 1.0], [3.0, 2.0], [6.0, 3.0], [12.0, 4.0], [24.0, 5.0]])

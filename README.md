@@ -16,7 +16,7 @@ python -m unittest
 
 ## Documentation
 
-This library was documented using the google style docstring, it can be accessed [here](https://mariolpantunes.github.io/uts/).
+This library was documented using the google style docstring, it can be accessed [here](https://mariolpantunes.github.io/pyUTSAlgorithms/).
 Run the following commands to produce the documentation for this library.
 
 ```bash
@@ -28,7 +28,7 @@ pdoc --math -d google -o docs src/uts
 
 The library can be used by adding this line to the requirement.txt file:
 ```txt
-git+https://github.com/mariolpantunes/uts@main#egg=knee
+git+https://github.com/mariolpantunes/pyUTSAlgorithms@main#egg=uts
 ```
 
 ## Authors

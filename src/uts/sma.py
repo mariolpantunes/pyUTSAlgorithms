@@ -5,11 +5,14 @@ __version__ = '0.1'
 __email__ = 'mariolpantunes@gmail.com'
 __status__ = 'Development'
 
+
 import numpy as np
 
 
-def trapezoid_left(x1:float, x2:float, x3:float, y1:float, y3:float) -> float:
+def _trapezoid_left(x1:float, x2:float, x3:float, y1:float, y3:float) -> float:
     """
+    Internal function used in SMA linear variant.
+    
     Calculate the area of the trapezoid with corner coordinates (x2, 0), (x2, y2), (x3, 0), (x3, y3),
     where y2 is obtained by linear interpolation of (x1, y1) and (x3, y3) evaluated at x2.
 
@@ -34,8 +37,10 @@ def trapezoid_left(x1:float, x2:float, x3:float, y1:float, y3:float) -> float:
     return (x3 - x2) * (y2 + y3) / 2
 
 
-def trapezoid_right(x1,  x2,  x3,  y1,  y3) -> float:
+def _trapezoid_right(x1,  x2,  x3,  y1,  y3) -> float:
     """
+    Internal function used in SMA linear variant.
+
     Calculate the area of the trapezoid with corner coordinates (x1, 0), (x1, y1), (x2, 0), (x2, y2),
     where y2 is obtained by linear interpolation of (x1, y1) and (x3, y3) evaluated at x2.
 
@@ -218,8 +223,8 @@ def linear(values: np.ndarray, width_before: float, width_after: float) -> np.nd
             left += 1
     
         # Add truncated area on left and right end
-        left_area = trapezoid_left(values[max(0,left-1)][0], t_left_new, values[left][0], values[max(0,left-1)][1], values[left][1])
-        right_area = trapezoid_right(values[right][0], t_right_new, values[min(right+1, n-1)][0], values[right][1], values[min(right+1, n-1)][1]) 
+        left_area = _trapezoid_left(values[max(0,left-1)][0], t_left_new, values[left][0], values[max(0,left-1)][1], values[left][1])
+        right_area = _trapezoid_right(values[right][0], t_right_new, values[min(right+1, n-1)][0], values[right][1], values[min(right+1, n-1)][1]) 
         roll_area += left_area + right_area
 
         # Save SMA value for current time window
