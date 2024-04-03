@@ -1,0 +1,25 @@
+cff-version: 1.2.0
+title: pyUTSAlgorithms (Unevenly Spaced Time Series Algorithms)
+message: >-
+  If you use this software, please cite it using the
+  metadata from this file.
+type: software
+authors:
+  - given-names: Mário
+    family-names: Antunes
+    email: mario.antunes@ua.pt
+    affiliation: Universidade de Aveiro
+    orcid: 'https://orcid.org/0000-0002-6504-9441'
+  - given-names: Yifei
+    email: yifeliu@cs.stonybrook.edu
+    family-names: Liu
+    affiliation: Stony Brook University
+    orcid: 'https://orcid.org/0000-0002-1918-5119'
+identifiers:
+  - type: doi
+    value: XXX
+repository-code: 'https://github.com/mariolpantunes/pyUTSAlgorithms'
+url: 'https://pypi.org/project/pyUTSAlgorithms/'
+license: MIT
+version: 0.1.3
+date-released: '2024-04-04'
