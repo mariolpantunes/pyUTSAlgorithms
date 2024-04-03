@@ -26,9 +26,18 @@ pdoc --math -d google -o docs src/uts
 
 ## Instalation
 
-The library can be used by adding this line to the requirement.txt file:
+To install the library locally, simple execute the following commands:
+
+```bash
+python3 -m venv venv
+source venv/bin/activate
+python -m pip install --upgrade pip
+pip install .
+```
+You can also use the PyPI repository for easy access to the library:
+
 ```txt
-git+https://github.com/mariolpantunes/pyUTSAlgorithms@main#egg=uts
+pyUTSAlgorithms>=0.1.3
 ```
 
 ## Authors
