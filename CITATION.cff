@@ -17,7 +17,7 @@ authors:
     orcid: 'https://orcid.org/0000-0002-1918-5119'
 identifiers:
   - type: doi
-    value: XXX
+    value: 10.5281/zenodo.10915133
 repository-code: 'https://github.com/mariolpantunes/pyUTSAlgorithms'
 url: 'https://pypi.org/project/pyUTSAlgorithms/'
 license: MIT
