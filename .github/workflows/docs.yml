@@ -19,8 +19,8 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.10'
-          cache: 'pip'
+          python-version: "3.10"
+          cache: "pip"
 
       - name: Install dependencies
         run: |
@@ -29,14 +29,11 @@ jobs:
 
       - name: Build documentation
         run: |
-          # 1. Generate HTML (linking to the assets folder)
-          # We use a temporary output directory to avoid conflicts
           pdoc --math -d google -o docs_out src/uts \
             --logo "assets/logo.svg" \
             --favicon "assets/logo.svg"
-
-          # 2. Manually copy the assets folder into the output directory so the link works
           cp -r assets docs_out/assets
+          touch docs_out/.nojekyll
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
