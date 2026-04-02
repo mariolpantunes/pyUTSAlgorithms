@@ -1,17 +1,76 @@
-name: Publish to PyPI.org
+name: Publish to PyPI and LinkedIn
+
 on:
   release:
     types: [published]
+
 jobs:
   pypi:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - run: python3 -m pip install --upgrade build && python3 -m build
-      - name: Publish package
+
+      - name: Install build tools & HTTP library
+        # Added 'requests' so we can hit the LinkedIn API later
+        run: |
+          python3 -m pip install --upgrade build requests
+          python3 -m build
+
+      - name: Publish package to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           password: ${{ secrets.PYPI_API_TOKEN }}
+
+      - name: Announce Release on LinkedIn
+        env:
+          LINKEDIN_TOKEN: ${{ secrets.LINKEDIN_ACCESS_TOKEN }}
+          LINKEDIN_URN: ${{ secrets.LINKEDIN_PERSON_URN }}
+          TAG_NAME: ${{ github.event.release.tag_name }}
+          RELEASE_URL: ${{ github.event.release.html_url }}
+          REPO_NAME: ${{ github.event.repository.name }}
+        run: |
+          python3 -c '
+          import os, requests, sys
+
+          token = os.environ.get("LINKEDIN_TOKEN")
+          urn = os.environ.get("LINKEDIN_URN")
+          tag = os.environ.get("TAG_NAME")
+          url = os.environ.get("RELEASE_URL")
+          repo_name = os.environ.get("REPO_NAME", "my latest project")
+
+          if not token or not urn:
+              print("Error: LinkedIn credentials are missing from repository secrets.")
+              sys.exit(1)
+
+          # Customize your automated post message here
+          message = f"I am pleased to announce that version {tag} of {repo_name} is now available.\n\nYou can review the release notes, updates, and asset downloads here: {url}\n\n#Python #OpenSource #SoftwareRelease"
+
+          headers = {
+              "Authorization": f"Bearer {token}",
+              "X-Restli-Protocol-Version": "2.0.0",
+              "Content-Type": "application/json"
+          }
+
+          payload = {
+              "author": f"urn:li:person:{urn}",
+              "lifecycleState": "PUBLISHED",
+              "specificContent": {
+                  "com.linkedin.ugc.ShareContent": {
+                      "shareCommentary": {"text": message},
+                      "shareMediaCategory": "NONE"
+                  }
+              },
+              "visibility": {"com.linkedin.ugc.MemberNetworkVisibility": "PUBLIC"}
+          }
+
+          response = requests.post("https://api.linkedin.com/v2/ugcPosts", headers=headers, json=payload)
+
+          if response.status_code == 201:
+              print("Successfully posted to LinkedIn!")
+          else:
+              print(f"Failed to post. Status: {response.status_code}\n{response.text}")
+              sys.exit(1)
+          '
