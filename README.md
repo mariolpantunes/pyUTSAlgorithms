@@ -1,4 +1,6 @@
-# <img src="assets/logo.svg" alt="logo" width="128" height="128" align="middle"> pyUTSAlgorithms (Unevenly Spaced Time Series Algorithms)
+# <img src="assets/logo.svg" alt="logo" width="128" height="128" align="middle"> pyUTSAlgorithms 
+
+## Unevenly Spaced Time Series Algorithms
 
 ![PyPI - Version](https://img.shields.io/pypi/v/pyUTSAlgorithms)
 ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/pyUTSAlgorithms)
