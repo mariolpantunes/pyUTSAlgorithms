@@ -1,21 +1,24 @@
 # coding: utf-8
 
-__author__ = 'Mário Antunes'
-__version__ = '0.1'
-__email__ = 'mariolpantunes@gmail.com'
-__status__ = 'Development'
+__author__ = "Mário Antunes"
+__version__ = "0.2"
+__email__ = "mariolpantunes@gmail.com"
+__status__ = "Development"
 
 
 import math
+from typing import Optional
+
 import numpy as np
-from uts import zscore, thresholding
+
+from . import thresholding, zscore
 
 
 def all_peaks(points: np.ndarray) -> np.ndarray:
     """
     Returns the index of all the peaks in a 2D curve.
 
-    A peak (y) is defined by the following expression: \\( y_i-1 < y_i > y_i+1 \\)
+    A peak (y) is defined by the following expression: \\( y_{i-1} < y_i > y_{i+1} \\)
 
     Args:
         points (np.ndarray): numpy array with the points (x, y)
@@ -23,25 +26,20 @@ def all_peaks(points: np.ndarray) -> np.ndarray:
     Returns:
         np.ndarray: the indexes of the peak points
     """
+    if len(points) < 3:
+        return np.array([], dtype=int)
 
-    peaks_idx = []
-
-    for i in range(1, len(points) - 1):
-        y0 = points[i-1][1]
-        y = points[i][1]
-        y1 = points[i+1][1]
-
-        if y0 < y and y > y1:
-            peaks_idx.append(i)
-
-    return np.array(peaks_idx)
+    y = points[:, 1]
+    # Vectorized peak detection
+    peaks = (y[1:-1] > y[:-2]) & (y[1:-1] > y[2:])
+    return np.where(peaks)[0] + 1
 
 
 def all_valleys(points: np.ndarray) -> np.ndarray:
     """
     Returns the index of all the valleys in a 2D curve.
 
-    A valley (y) is defined by the following expression: \\( y_i-1 > y_i < y_i+1 \\)
+    A valley (y) is defined by the following expression: \\( y_{i-1} > y_i < y_{i+1} \\)
 
     Args:
         points (np.ndarray): numpy array with the points (x, y)
@@ -49,21 +47,16 @@ def all_valleys(points: np.ndarray) -> np.ndarray:
     Returns:
         np.ndarray: the indexes of the peak points
     """
+    if len(points) < 3:
+        return np.array([], dtype=int)
 
-    valleys_idx = []
-
-    for i in range(1, len(points) - 1):
-        y0 = points[i-1][1]
-        y = points[i][1]
-        y1 = points[i+1][1]
-
-        if y0 > y and y < y1:
-            valleys_idx.append(i)
-
-    return np.array(valleys_idx)
+    y = points[:, 1]
+    # Vectorized valley detection
+    valleys = (y[1:-1] < y[:-2]) & (y[1:-1] < y[2:])
+    return np.where(valleys)[0] + 1
 
 
-def highest_peak(points: np.ndarray, peaks_idx: np.ndarray) -> int:
+def highest_peak(points: np.ndarray, peaks_idx: np.ndarray) -> Optional[int]:
     """
     Returns the index of the highest peak in a curve.
 
@@ -72,46 +65,40 @@ def highest_peak(points: np.ndarray, peaks_idx: np.ndarray) -> int:
         peaks_idx (np.ndarray): numpy array with the peak indexes
 
     Returns:
-        int: the index of the highest peak
+        Optional[int]: the index of the highest peak, or None if no peaks
     """
-
-    if peaks_idx.size != 0:
-        peaks = points[peaks_idx][:, 1]
-        idx = np.argmax(peaks)
-
-        return peaks_idx[idx]
-    else:
+    if peaks_idx.size == 0:
         return None
 
+    peaks_values = points[peaks_idx, 1]
+    return peaks_idx[np.argmax(peaks_values)]
 
-def significant_peaks(points: np.ndarray, peaks_idx: np.ndarray, h: float = 1.0) -> np.ndarray:
+
+def significant_peaks(
+    points: np.ndarray, peaks_idx: np.ndarray, h: float = 1.0
+) -> np.ndarray:
     """
     Returns the index of the significant peaks in a 2D curve.
 
-    A significant peak (y) is defined by the following definition: \\( y > \\overline{peaks} + h \\times \\sigma(peaks) \\)
+    A significant peak (y) is defined by: \\( y > \\overline{peaks} + h \\times \\sigma(peaks) \\)
 
     Args:
         points (np.ndarray): numpy array with the points (x, y)
         peaks_idx (np.ndarray): numpy array with the peak indexes
-        h (float): weight of the standart deviation
+        h (float): weight of the standard deviation
 
     Returns:
-        np.ndarray: the indexes of the peak points
+        np.ndarray: the indexes of the significant peak points
     """
-    if peaks_idx.size != 0:
-        peaks = points[peaks_idx][:, 1]
-        m = np.mean(peaks)
-        s = np.std(peaks)
+    if peaks_idx.size == 0:
+        return np.array([], dtype=int)
 
-        significant = []
+    peaks_values = points[peaks_idx, 1]
+    m = np.mean(peaks_values)
+    s = np.std(peaks_values)
 
-        for i in range(0, len(peaks)):
-            if peaks[i] >= (m+h*s):
-                significant.append(peaks_idx[i])
-
-        return np.array(significant)
-    else:
-        return np.array([])
+    mask = peaks_values >= (m + h * s)
+    return peaks_idx[mask]
 
 
 def find_next_tau(points: np.ndarray, i: int, tau: float) -> int:
@@ -124,24 +111,26 @@ def find_next_tau(points: np.ndarray, i: int, tau: float) -> int:
     Args:
         points (np.ndarray): numpy array with the points (x, y)
         i (int): index where the search starts
-        tau (float): time duration that needs to be exceeded 
+        tau (float): time duration that needs to be exceeded
 
     Returns:
         int: the index of the next step
     """
+    n = len(points)
+    if i >= n - 1:
+        return n - 1
 
-    if i == len(points)-1:
-        return i
+    times = points[i:, 0]
+    cumulative_durations = times - times[0]
 
-    durations = points[i+1:, 0] - points[i:-1, 0]
-    cumulative_durations = np.cumsum(durations)
-    idx = cumulative_durations[cumulative_durations > tau]
-    idx = np.argmax(cumulative_durations > tau)
+    # Find the first index where cumulative_duration > tau
+    # We ignore the first element (which is 0.0)
+    mask = cumulative_durations[1:] > tau
+    if not np.any(mask):
+        return n - 1
 
-    if idx == 0:
-        return len(points)-1
-
-    return i+idx+1
+    idx = np.argmax(mask)
+    return i + int(idx) + 1
 
 
 def zscore_peaks_values(points: np.ndarray, peaks_idx: np.ndarray) -> np.ndarray:
@@ -155,28 +144,36 @@ def zscore_peaks_values(points: np.ndarray, peaks_idx: np.ndarray) -> np.ndarray
         peaks_idx (np.ndarray): numpy array with the peak indexes
 
     Returns:
-        np.ndarry: z-score values of each peak
+        np.ndarray: z-score values of each peak
     """
-    peaks = points[peaks_idx]
+    if peaks_idx.size == 0:
+        return np.array([])
+
     scores = []
 
-    # first peak
-    tau = peaks[0][0] - points[0][0]
-    right = find_next_tau(points, peaks_idx[0], tau)
-    score = math.fabs(zscore.zscore_linear(peaks[0][1], points[0: right+1]))
-    scores.append(score)
+    # Process each peak
+    for j, idx in enumerate(peaks_idx):
+        if j == 0:
+            # First peak: neighborhood from start to tau after peak
+            tau = points[idx, 0] - points[0, 0]
+            left_idx = 0
+        else:
+            # Subsequent peaks: neighborhood from previous peak to tau after current peak
+            tau = points[idx, 0] - points[peaks_idx[j - 1], 0]
+            left_idx = peaks_idx[j - 1]
 
-    for i in range(1, len(peaks)):
-        tau = peaks[i][0] - peaks[i-1][0]
-        right = find_next_tau(points, peaks_idx[i], tau)
-        score = math.fabs(zscore.zscore_linear(
-            peaks[i][1], points[peaks_idx[i-1]: right+1]))
+        right_idx = find_next_tau(points, idx, tau)
+        score = math.fabs(
+            zscore.zscore_linear(points[idx, 1], points[left_idx : right_idx + 1])
+        )
         scores.append(score)
 
     return np.array(scores)
 
 
-def significant_zscore_peaks(points: np.ndarray, peaks_idx: np.ndarray, t: float = 1.0) -> np.ndarray:
+def significant_zscore_peaks(
+    points: np.ndarray, peaks_idx: np.ndarray, t: float = 1.0
+) -> np.ndarray:
     """
     Returns the index of the significant peaks in a 2D curve.
 
@@ -190,14 +187,16 @@ def significant_zscore_peaks(points: np.ndarray, peaks_idx: np.ndarray, t: float
     Returns:
         np.ndarray: the indexes of the peak points
     """
-    if peaks_idx.size != 0:
-        scores = zscore_peaks_values(points, peaks_idx)
-        return peaks_idx[scores > t]
-    else:
-        return np.array([])
+    if peaks_idx.size == 0:
+        return np.array([], dtype=int)
+
+    scores = zscore_peaks_values(points, peaks_idx)
+    return peaks_idx[scores > t]
 
 
-def significant_zscore_peaks_iso(points: np.ndarray, peaks_idx: np.ndarray) -> np.ndarray:
+def significant_zscore_peaks_iso(
+    points: np.ndarray, peaks_idx: np.ndarray
+) -> np.ndarray:
     """
     Returns the index of the significant peaks in a 2D curve.
 
@@ -211,16 +210,22 @@ def significant_zscore_peaks_iso(points: np.ndarray, peaks_idx: np.ndarray) -> n
     Returns:
         np.ndarray: the indexes of the peak points
     """
-    if peaks_idx.size != 0:
-        scores = zscore_peaks_values(points, peaks_idx)
-        positive_scores = scores[scores > 0]
-        t = thresholding.isodata(positive_scores)
-        return peaks_idx[scores > t]
-    else:
-        return np.array([])
+    if peaks_idx.size == 0:
+        return np.array([], dtype=int)
+
+    scores = zscore_peaks_values(points, peaks_idx)
+    positive_scores = scores[scores > 0]
+
+    if positive_scores.size == 0:
+        return np.array([], dtype=int)
+
+    t = thresholding.isodata(positive_scores)
+    return peaks_idx[scores > t]
 
 
-def kneedle_peak_detection(points: np.ndarray, peaks_idx: np.ndarray, s: float = 1.0) -> np.ndarray:
+def kneedle_peak_detection(
+    points: np.ndarray, peaks_idx: np.ndarray, s: float = 1.0
+) -> np.ndarray:
     """
     Returns the index of the significant peaks in a 2D curve.
 
@@ -229,35 +234,111 @@ def kneedle_peak_detection(points: np.ndarray, peaks_idx: np.ndarray, s: float =
     Args:
         points (np.ndarray): numpy array with the points (x, y)
         peaks_idx (np.ndarray): numpy array with the peak indexes
-        t (float): sensitivity
+        s (float): sensitivity
 
     Returns:
         np.ndarray: the indexes of the peak points
     """
-    if peaks_idx.size != 0:
+    if peaks_idx.size == 0:
+        return np.array([], dtype=int)
 
-        x = points[:, 0]
-        y = points[:, 1]
-        y_peaks = y[peaks_idx]
-        valleys_idx = all_valleys(points)
-        
-        t_lm = y_peaks - s * np.abs(np.diff(x).mean())
-        knee_points_index = []
+    x = points[:, 0]
+    y = points[:, 1]
+    y_peaks = y[peaks_idx]
+    valleys_idx = set(all_valleys(points))
+    peaks_idx_set = set(peaks_idx)
 
-        threshold = j = knee_idx = 0
-        for i in range(0, len(y)-1):
-            if i in peaks_idx:
-                threshold = t_lm[j]
-                j += 1
-                knee_idx = i
-            
-            if i in valleys_idx:
-                threshold = 0.0
+    # Calculate threshold for each peak
+    # The sensitivity s determines how much the value must drop after a peak
+    t_lm = y_peaks - s * np.abs(np.diff(x).mean())
 
-            if y[i] <= threshold and knee_idx > 0:
-                knee_points_index.append(knee_idx)
-                knee_idx = -1
+    knee_points_index = []
+    threshold = 0.0
+    knee_idx = -1
 
-        return np.array(knee_points_index)
-    else:
+    peak_count = 0
+    for i in range(len(y)):
+        if i in peaks_idx_set:
+            threshold = t_lm[peak_count]
+            peak_count += 1
+            knee_idx = i
+
+        if i in valleys_idx:
+            threshold = 0.0
+
+        if knee_idx != -1 and y[i] <= threshold:
+            knee_points_index.append(knee_idx)
+            knee_idx = -1
+
+    return np.array(knee_points_index, dtype=int)
+
+
+def peak_prominence(points: np.ndarray, peaks_idx: np.ndarray) -> np.ndarray:
+    """
+    Calculates the prominence of each peak.
+    The prominence of a peak is the vertical distance between the peak and its lowest contour line.
+
+    For each peak \\( y_i \\), its prominence is defined as:
+    \\[
+    P_i = y_i - \\max(\\text{left\\_min}, \\text{right\\_min})
+    \\]
+    where left\\_min and right\\_min are the minimum values between the peak and the first points to its
+    left and right that are higher than the peak itself.
+
+    Args:
+        points (np.ndarray): numpy array with the points (x, y)
+        peaks_idx (np.ndarray): numpy array with the peak indexes
+
+    Returns:
+        np.ndarray: prominence values for each peak
+    """
+    if peaks_idx.size == 0:
         return np.array([])
+
+    y = points[:, 1]
+    n = len(y)
+    prominences = np.zeros(len(peaks_idx))
+
+    for i, idx in enumerate(peaks_idx):
+        # Find left base
+        left_min = y[idx]
+        for j in range(idx - 1, -1, -1):
+            if y[j] > y[idx]:
+                break
+            if y[j] < left_min:
+                left_min = y[j]
+
+        # Find right base
+        right_min = y[idx]
+        for j in range(idx + 1, n):
+            if y[j] > y[idx]:
+                break
+            if y[j] < right_min:
+                right_min = y[j]
+
+        # Prominence is the height above the higher of the two bases
+        base = max(left_min, right_min)
+        prominences[i] = y[idx] - base
+
+    return prominences
+
+
+def significant_prominence_peaks(
+    points: np.ndarray, peaks_idx: np.ndarray, threshold: float
+) -> np.ndarray:
+    """
+    Returns the index of the significant peaks based on prominence.
+
+    Args:
+        points (np.ndarray): numpy array with the points (x, y)
+        peaks_idx (np.ndarray): numpy array with the peak indexes
+        threshold (float): prominence threshold
+
+    Returns:
+        np.ndarray: the indexes of the significant peak points
+    """
+    if peaks_idx.size == 0:
+        return np.array([], dtype=int)
+
+    prominences = peak_prominence(points, peaks_idx)
+    return peaks_idx[prominences >= threshold]

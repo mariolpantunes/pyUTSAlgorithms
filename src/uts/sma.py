@@ -1,233 +1,207 @@
 # coding: utf-8
 
-__author__ = 'Mário Antunes'
-__version__ = '0.1'
-__email__ = 'mariolpantunes@gmail.com'
-__status__ = 'Development'
+__author__ = "Mário Antunes"
+__version__ = "0.2"
+__email__ = "mariolpantunes@gmail.com"
+__status__ = "Development"
 
 
 import numpy as np
 
 
-def _trapezoid_left(x1:float, x2:float, x3:float, y1:float, y3:float) -> float:
-    """
-    Internal function used in SMA linear variant.
-    
-    Calculate the area of the trapezoid with corner coordinates (x2, 0), (x2, y2), (x3, 0), (x3, y3),
-    where y2 is obtained by linear interpolation of (x1, y1) and (x3, y3) evaluated at x2.
-
-    Args:
-        x1 (float): x coordinate
-        x2 (float): x coordinate
-        x3 (float): x coordinate
-        y1 (float): y coordinate
-        y3 (float): y coordinate
-    
-    Returns:
-        float: the area of the trapezoid
-    """
-
-    # Degenerate cases
-    if x2 == x3 or x2 < x1:
+def _trapezoid_left(x1: float, x2: float, x3: float, y1: float, y3: float) -> float:
+    if (x2 == x3) or (x2 < x1):
         return (x3 - x2) * y1
-
-    # Find y2 using linear interpolation and calculate the trapezoid area
     w = (x3 - x2) / (x3 - x1)
-    y2 = y1 * w + y3 * (1 - w)
-    return (x3 - x2) * (y2 + y3) / 2
+    y2 = y1 * w + y3 * (1.0 - w)
+    return (x3 - x2) * (y2 + y3) / 2.0
 
 
-def _trapezoid_right(x1,  x2,  x3,  y1,  y3) -> float:
-    """
-    Internal function used in SMA linear variant.
-
-    Calculate the area of the trapezoid with corner coordinates (x1, 0), (x1, y1), (x2, 0), (x2, y2),
-    where y2 is obtained by linear interpolation of (x1, y1) and (x3, y3) evaluated at x2.
-
-    Args:
-        x1 (float): x coordinate
-        x2 (float): x coordinate
-        x3 (float): x coordinate
-        y1 (float): y coordinate
-        y3 (float): y coordinate
-    
-    Returns:
-        float: the area of the trapezoid
-    """
-    
-    # Degenerate cases
-    if x2 == x1 or x2 > x3:
+def _trapezoid_right(x1: float, x2: float, x3: float, y1: float, y3: float) -> float:
+    if (x2 == x1) or (x2 > x3):
         return (x2 - x1) * y1
-
-    # Find y2 using linear interpolation and calculate the trapezoid area
     w = (x3 - x2) / (x3 - x1)
-    y2 = y1 * w + y3 * (1 - w)
-    return (x2 - x1) * (y1 + y2) / 2
+    y2 = y1 * w + y3 * (1.0 - w)
+    return (x2 - x1) * (y1 + y2) / 2.0
 
 
 def last(values: np.ndarray, width_before: float, width_after: float) -> np.ndarray:
     """
-    Computes the simple moving average.
+    Computes the simple moving average using the 'last' interpolation scheme.
 
-    This version uses the last value as a aproximation.
+    \\[
+    SMA(t_i) = \\frac{1}{w_b + w_a} \\int_{t_i - w_b}^{t_i + w_a} y_{last}(t) dt
+    \\]
+
+    Matches the reference C implementation.
 
     Args:
-        values (np.ndarray): array of time series values
-        width_before (float): (non-negative) width of rolling window before t_i
-        width_after (float): (non-negative) width of rolling window after t_i
-    
+        values (np.ndarray): array of time series values (x, y)
+        width_before (float): width of rolling window before t_i
+        width_after (float): width of rolling window after t_i
+
     Returns:
-        np.ndarray: the result array after aplying the SMA kernel
+        np.ndarray: the result array (time, sma)
     """
-
-    left = right = 0
-    t_left_new = t_right_new = right_area = 0
-
     n = len(values)
-    # Trivial case
     if n == 0:
         return np.array([])
 
-    # Initialize output
-    rv = np.empty([n, 2])
+    times = values[:, 0]
+    y = values[:, 1]
+
+    rv = np.empty((n, 2))
     rv[0] = values[0]
-    roll_area = left_area = values[0][1] * (width_before + width_after)
 
-    # Apply rolling window
+    left = 0
+    right = 0
+    roll_area = y[0] * (width_before + width_after)
+    left_area = roll_area
+    right_area = 0.0
+
     for i in range(1, n):
-        # Remove truncated area on left and right end
-        roll_area -= (left_area + right_area)
+        roll_area -= left_area + right_area
 
-        # Expand interval on right end
-        t_right_new = values[i][0] + width_after
-        while (right < n - 1) and (values[right + 1][0] <= t_right_new):
+        t_right_new = times[i] + width_after
+        while (right < n - 1) and (times[right + 1] <= t_right_new):
             right += 1
-            roll_area += values[right - 1][1] * (values[right][0] - values[right - 1][0])
+            roll_area += y[right - 1] * (times[right] - times[right - 1])
 
-        # Shrink interval on left end
-        t_left_new = values[i][0] - width_before
-        while values[left][0] < t_left_new:
-            roll_area -= values[left][1] * (values[left+1][0] - values[left][0])
+        t_left_new = times[i] - width_before
+        while times[left] < t_left_new:
+            roll_area -= y[left] * (times[left + 1] - times[left])
             left += 1
 
-        # Add truncated area on left and right end
-        left_area = values[max(0, left-1)][1] * (values[left][0] - t_left_new)
-        right_area = values[right][1] * (t_right_new - values[right][0])
+        left_area = y[max(0, left - 1)] * (times[left] - t_left_new)
+        right_area = y[right] * (t_right_new - times[right])
         roll_area += left_area + right_area
 
-        # Save SMA value for current time window
-        y = roll_area / (width_before + width_after)
-        rv[i] = np.array([values[i][0], y])
+        rv[i] = [times[i], roll_area / (width_before + width_after)]
+
     return rv
 
 
 def next(values: np.ndarray, width_before: float, width_after: float) -> np.ndarray:
     """
-    Computes the simple moving average.
+    Computes the simple moving average using the 'next' interpolation scheme.
 
-    This version uses the next value as a aproximation.
+    \\[
+    SMA(t_i) = \\frac{1}{w_b + w_a} \\int_{t_i - w_b}^{t_i + w_a} y_{next}(t) dt
+    \\]
+
+    Matches the reference C implementation.
 
     Args:
-        values (np.ndarray): array of time series values
-        width_before (float): (non-negative) width of rolling window before t_i
-        width_after (float): (non-negative) width of rolling window after t_i
-    
+        values (np.ndarray): array of time series values (x, y)
+        width_before (float): width of rolling window before t_i
+        width_after (float): width of rolling window after t_i
+
     Returns:
-        np.ndarray: the result array after aplying the SMA kernel
+        np.ndarray: the result array (time, sma)
     """
-
-    left = right = 0
-    t_left_new = t_right_new = right_area = 0
-
     n = len(values)
-    # Trivial case
     if n == 0:
         return np.array([])
-    
-    # Initialize output
-    rv = np.empty([n, 2])
+
+    times = values[:, 0]
+    y = values[:, 1]
+
+    rv = np.empty((n, 2))
     rv[0] = values[0]
-    roll_area = left_area = values[0][1] * (width_before + width_after)
 
-    # Apply rolling window
+    left = 0
+    right = 0
+    roll_area = y[0] * (width_before + width_after)
+    left_area = roll_area
+    right_area = 0.0
+
     for i in range(1, n):
-        # Remove truncated area on left and right end
-        roll_area -= (left_area + right_area)
+        roll_area -= left_area + right_area
 
-        # Expand interval on right end
-        t_right_new = values[i][0] + width_after
-        while (right < n - 1) and (values[right + 1][0] <= t_right_new):
+        t_right_new = times[i] + width_after
+        while (right < n - 1) and (times[right + 1] <= t_right_new):
             right += 1
-            roll_area += values[right][1] * (values[right][0] - values[right - 1][0])
+            roll_area += y[right] * (times[right] - times[right - 1])
 
-        # Shrink interval on left end
-        t_left_new = values[i][0] - width_before
-        while values[left][0] < t_left_new:
-            roll_area -= values[left+1][1] * (values[left+1][0] - values[left][0])
+        t_left_new = times[i] - width_before
+        while times[left] < t_left_new:
+            roll_area -= y[left + 1] * (times[left + 1] - times[left])
             left += 1
-    
-        # Add truncated area on left and right end
-        left_area = values[left][1] * (values[left][0] - t_left_new)
-        right_area = values[right][1] * (t_right_new - values[right][0])
+
+        left_area = y[left] * (times[left] - t_left_new)
+        right_area = y[right] * (t_right_new - times[right])
         roll_area += left_area + right_area
 
-        # Save SMA value for current time window
-        y = roll_area / (width_before + width_after)
-        rv[i] = np.array([values[i][0], y])
+        rv[i] = [times[i], roll_area / (width_before + width_after)]
+
     return rv
-    
+
 
 def linear(values: np.ndarray, width_before: float, width_after: float) -> np.ndarray:
     """
-    Computes the simple moving average.
+    Computes the simple moving average using the 'linear' interpolation scheme.
 
-    This version uses a linear aproximation.
+    \\[
+    SMA(t_i) = \\frac{1}{w_b + w_a} \\int_{t_i - w_b}^{t_i + w_a} y_{linear}(t) dt
+    \\]
+
+    Matches the reference C implementation.
 
     Args:
-        values (np.ndarray): array of time series values
-        width_before (float): (non-negative) width of rolling window before t_i
-        width_after (float): (non-negative) width of rolling window after t_i
-    
+        values (np.ndarray): array of time series values (x, y)
+        width_before (float): width of rolling window before t_i
+        width_after (float): width of rolling window after t_i
+
     Returns:
-        np.ndarray: the result array after aplying the SMA kernel
+        np.ndarray: the result array (time, sma)
     """
-
-    left = right = 0
-    t_left_new = t_right_new = right_area = 0
-
     n = len(values)
-    # Trivial case
     if n == 0:
         return np.array([])
-    
-    # Initialize output
-    rv = np.empty([n, 2])
+
+    times = values[:, 0]
+    y = values[:, 1]
+
+    rv = np.empty((n, 2))
     rv[0] = values[0]
-    roll_area = left_area = values[0][1] * (width_before + width_after)
 
-    # Apply rolling window
+    left = 0
+    right = 0
+    roll_area = y[0] * (width_before + width_after)
+    left_area = roll_area
+    right_area = 0.0
+
     for i in range(1, n):
-        # Remove truncated area on left and right end
-        roll_area -= (left_area + right_area)
+        roll_area -= left_area + right_area
 
-        # Expand interval on right end
-        t_right_new = values[i][0] + width_after
-        while (right < n - 1) and (values[right + 1][0] <= t_right_new):
+        t_right_new = times[i] + width_after
+        while (right < n - 1) and (times[right + 1] <= t_right_new):
             right += 1
-            roll_area += (values[right][1] + values[right - 1][1])/2.0 * (values[right][0] - values[right - 1][0])
+            roll_area += (
+                (y[right] + y[right - 1]) / 2.0 * (times[right] - times[right - 1])
+            )
 
-        # Shrink interval on left end
-        t_left_new = values[i][0] - width_before
-        while values[left][0] < t_left_new:
-            roll_area -= (values[left][1]+values[left+1][1])/2.0 * (values[left+1][0] - values[left][0])
+        t_left_new = times[i] - width_before
+        while times[left] < t_left_new:
+            roll_area -= (y[left] + y[left + 1]) / 2.0 * (times[left + 1] - times[left])
             left += 1
-    
-        # Add truncated area on left and right end
-        left_area = _trapezoid_left(values[max(0,left-1)][0], t_left_new, values[left][0], values[max(0,left-1)][1], values[left][1])
-        right_area = _trapezoid_right(values[right][0], t_right_new, values[min(right+1, n-1)][0], values[right][1], values[min(right+1, n-1)][1]) 
+
+        left_area = _trapezoid_left(
+            times[max(0, left - 1)],
+            t_left_new,
+            times[left],
+            y[max(0, left - 1)],
+            y[left],
+        )
+        right_area = _trapezoid_right(
+            times[right],
+            t_right_new,
+            times[min(right + 1, n - 1)],
+            y[right],
+            y[min(right + 1, n - 1)],
+        )
         roll_area += left_area + right_area
 
-        # Save SMA value for current time window
-        y = roll_area / (width_before + width_after)
-        rv[i] = np.array([values[i][0], y])
+        rv[i] = [times[i], roll_area / (width_before + width_after)]
+
     return rv

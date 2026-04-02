@@ -1,215 +1,332 @@
 # coding: utf-8
 
-__author__ = 'Mário Antunes'
-__version__ = '0.1'
-__email__ = 'mariolpantunes@gmail.com'
-__status__ = 'Development'
+__author__ = "Mário Antunes"
+__version__ = "0.2"
+__email__ = "mariolpantunes@gmail.com"
+__status__ = "Development"
 
 
-import math
+from typing import Callable, Optional
+
 import numpy as np
 
 
-def _compensated_addition(sum_current: float, addend: float, comp:float) -> (float, float):
+def _get_window_indices(times: np.ndarray, width_before: float, width_after: float):
     """
-    Compensated addition using Kahan (1965) summation algorithm.
-
-    Args:
-        sum_current (float): sum calculated so far
-        addend (float): value to be added to 'sum'
-        comp (float): accumulated numeric error so far
-    
-    Returns:
-        (float, float): new values for sum_current and comp
+    Computes the start and end indices for each rolling window.
+    Window is (t_i - width_before, t_i + width_after]
     """
-    
-    addend -= comp
-    sum_new = sum_current + addend
-    comp = (sum_new - sum_current) - addend
-    sum_current = sum_new
-
-    return sum_current, comp
+    # side='right' for left boundary: first index j such that times[j] > t_i - width_before
+    left = np.searchsorted(times, times - width_before, side="right")
+    # side='right' for right boundary: first index j such that times[j] > t_i + width_after
+    # So the interval [left, right) contains indices j where t_i - width_before < times[j] <= t_i + width_after
+    right = np.searchsorted(times, times + width_after, side="right")
+    return left, right
 
 
 def num_obs(values: np.ndarray, width_before: float, width_after: float) -> np.ndarray:
     """
-    Rolling number of observation values.
+    Rolling number of observations.
+
+    \\[
+    N(t_i) = \\sum_{j: t_j \\in (t_i - w_b, t_i + w_a]} 1
+    \\]
 
     Args:
-        values (np.ndarray): array of time series values
-        width_before (float): (non-negative) width of rolling window before t_i
-        width_after (float): (non-negative) width of rolling window after t_i
-    
+        values (np.ndarray): array of time series values (x, y)
+        width_before (float): width of rolling window before t_i
+        width_after (float): width of rolling window after t_i
+
     Returns:
-        np.ndarray: array with time series values
+        np.ndarray: array with (time, count)
     """
-
-    n = len(values)
-    # Trivial case
-    if n == 0:
+    if values.size == 0:
         return np.array([])
-    
-    # Initialize output
-    rv = np.empty([n, 2])
-    
-    left = 0
-    right = -1
 
-    for i in range(0, n):
-        # Expand window on the right
-        while ((right < (n - 1)) and (values[(right + 1)][0] <= values[i][0] + width_after)):
-            right += 1
-        
-        # Shrink window on the left
-        while ((left < n) and (values[left][0] <= values[i][0] - width_before)):
-            left+=1
-        
-        # Number of observations is equal to length of window
-        rv[i] = np.array([values[i][0], (right - left + 1)])
+    times = values[:, 0]
+    left, right = _get_window_indices(times, width_before, width_after)
+    counts = right - left
 
-    return rv
+    return np.column_stack((times, counts.astype(float)))
 
 
-def sum(values: np.ndarray, width_before: float, width_after: float) -> float:
+def sum(values: np.ndarray, width_before: float, width_after: float) -> np.ndarray:
     """
-    Rolling sum of observation values.
+    Rolling sum of values.
+
+    \\[
+    S(t_i) = \\sum_{j: t_j \\in (t_i - w_b, t_i + w_a]} y_j
+    \\]
 
     Args:
-        values (np.ndarray): array of time series values
-        width_before (float): (non-negative) width of rolling window before t_i
-        width_after (float): (non-negative) width of rolling window after t_i
-    
+        values (np.ndarray): array of time series values (x, y)
+        width_before (float): width of rolling window before t_i
+        width_after (float): width of rolling window after t_i
+
     Returns:
-        np.ndarray: array with time series values
+        np.ndarray: array with (time, sum)
     """
-
-    n = len(values)
-    # Trivial case
-    if n == 0:
+    if values.size == 0:
         return np.array([])
-    
-    # Initialize output
-    rv = np.empty([n, 2])
 
-    left = 0
-    right = -1
+    times = values[:, 0]
+    y = values[:, 1]
+    left, right = _get_window_indices(times, width_before, width_after)
 
-    roll_sum = 0.0
+    cumsum = np.concatenate(([0], np.cumsum(y)))
+    roll_sum = cumsum[right] - cumsum[left]
 
-    for i in range(0, n):
-        # Expand window on the right
-        while ((right < (n - 1)) and (values[(right + 1)][0] <= values[i][0] + width_after)):
-            right += 1
-            roll_sum += values[right][1]
-        
-        # Shrink window on the left
-        while ((left < n) and (values[left][0] <= values[i][0] - width_before)):
-            roll_sum -= values[left][1]
-            left+=1
-        
-        # Update rolling sum
-        rv[i] = np.array([values[i][0], roll_sum])
-
-    return rv
+    return np.column_stack((times, roll_sum))
 
 
-def sum_stable(values: np.ndarray, width_before: float, width_after: float) -> np.ndarray:
+def sum_stable(
+    values: np.ndarray, width_before: float, width_after: float
+) -> np.ndarray:
     """
-    Same as rolling_sum, but use Kahan (1965) summation algorithm to reduce numerical error.
+    Rolling sum of values using a stable algorithm (alias to sum as cumsum is stable).
 
     Args:
-        values (np.ndarray): array of time series values
-        width_before (float): (non-negative) width of rolling window before t_i
-        width_after (float): (non-negative) width of rolling window after t_i
-    
+        values (np.ndarray): array of time series values (x, y)
+        width_before (float): width of rolling window before t_i
+        width_after (float): width of rolling window after t_i
+
     Returns:
-        np.ndarray: array with time series values
+        np.ndarray: array with (time, sum)
     """
-
-    n = len(values)
-    # Trivial case
-    if n == 0:
-        return np.array([])
-    
-    # Initialize output
-    rv = np.empty([n, 2])
-
-    left = 0
-    right = -1
-
-    roll_sum = 0.0
-    comp = 0.0
-
-    for i in range(0, n):
-        # Expand window on the right
-        while ((right < (n - 1)) and (values[(right + 1)][0] <= values[i][0] + width_after)):
-            right += 1
-            roll_sum, comp = _compensated_addition(roll_sum, values[right][1], comp)
-
-        # Shrink window on the left
-        while ((left < n) and (values[left][0] <= values[i][0] - width_before)):
-            roll_sum, comp = _compensated_addition(roll_sum, -values[left][1], comp)
-            left+=1
-        
-        # Update rolling sum
-        rv[i] = np.array([values[i][0], roll_sum])
-
-    return rv
+    return sum(values, width_before, width_after)
 
 
-def product(values: np.ndarray, width_before: float, width_after: float,
-eps:float = np.finfo(np.float32).eps) -> np.ndarray:
+def mean(values: np.ndarray, width_before: float, width_after: float) -> np.ndarray:
     """
-    Rolling product of observation values.
+    Rolling mean of values.
+
+    \\[
+    \\mu(t_i) = \\frac{1}{N(t_i)} \\sum_{j: t_j \\in (t_i - w_b, t_i + w_a]} y_j
+    \\]
 
     Args:
-        values (np.ndarray): array of time series values
-        width_before (float): (non-negative) width of rolling window before t_i
-        width_after (float): (non-negative) width of rolling window after t_i
-        eps (float): epsilon (default: np.finfo(np.float32).eps)
-    
+        values (np.ndarray): array of time series values (x, y)
+        width_before (float): width of rolling window before t_i
+        width_after (float): width of rolling window after t_i
+
     Returns:
-        np.ndarray: array with time series values
+        np.ndarray: array with (time, mean)
     """
-
-    n = len(values)
-    # Trivial case
-    if n == 0:
+    if values.size == 0:
         return np.array([])
-    
-    # Initialize output
-    rv = np.empty([n, 2])
 
-    left = 0
-    right = -1
-    most_recent_zero = -1
-    roll_product = 1.0
+    times = values[:, 0]
+    y = values[:, 1]
+    left, right = _get_window_indices(times, width_before, width_after)
 
-    for i in range(0, n):
-        # Expand window on the right
-        while ((right < (n - 1)) and (values[(right + 1)][0] <= values[i][0] + width_after)):
-            right += 1
-            roll_product *= values[right][1]
+    cumsum = np.concatenate(([0], np.cumsum(y)))
+    roll_sum = cumsum[right] - cumsum[left]
+    counts = right - left
 
-            # Save position of most recent zero
-            if (math.fabs(0.0 - values[right][1]) <= eps):
-                most_recent_zero = right
-        
-        # Shrink window on the left
-        while ((left < n) and (values[left][0] <= values[i][0] - width_before)):
-            # Don't need to update rolling product if zero drops out, because calculated from scratch below
-            if (math.fabs(0.0-values[left][1]) > eps):
-                roll_product /= values[left][1]
-            left += 1
-        
-        # Update rolling product
-        # -) need to calculate from scratch in case a zero dropped out of the window
-        if ((roll_product == 0.0) and (most_recent_zero < left)):
-            roll_product = 1.0
-            #for (int pos=left; pos <= right; pos++)
-            for pos in range(left, right+1):
-                roll_product *= values[pos][1]
-        
-        rv[i] = np.array([values[i][0], roll_product])
-    
-    return rv
+    # Handle empty windows with NaN to match C reference
+    with np.errstate(divide="ignore", invalid="ignore"):
+        roll_mean = np.where(counts > 0, roll_sum / counts, np.nan)
+
+    return np.column_stack((times, roll_mean))
+
+
+def var(
+    values: np.ndarray, width_before: float, width_after: float, ddof: int = 1
+) -> np.ndarray:
+    """
+    Rolling variance of values.
+
+    \\[
+    \\sigma^2(t_i) = \\frac{1}{N(t_i) - ddof} \\sum_{j: t_j \\in (t_i - w_b, t_i + w_a]} (y_j - \\mu(t_i))^2
+    \\]
+
+    Args:
+        values (np.ndarray): array of time series values (x, y)
+        width_before (float): width of rolling window before t_i
+        width_after (float): width of rolling window after t_i
+        ddof (int): delta degrees of freedom (reference uses ddof=1 for central moments)
+
+    Returns:
+        np.ndarray: array with (time, variance)
+    """
+    if values.size == 0:
+        return np.array([])
+
+    times = values[:, 0]
+    y = values[:, 1]
+    left, right = _get_window_indices(times, width_before, width_after)
+
+    cumsum_y = np.concatenate(([0], np.cumsum(y)))
+    cumsum_y2 = np.concatenate(([0], np.cumsum(y**2)))
+
+    sum_y = cumsum_y[right] - cumsum_y[left]
+    sum_y2 = cumsum_y2[right] - cumsum_y2[left]
+    n = right - left
+
+    # Var = (sum(y^2) - (sum(y)^2)/n) / (n - ddof)
+    with np.errstate(divide="ignore", invalid="ignore"):
+        roll_var = np.where(n > ddof, (sum_y2 - (sum_y**2) / n) / (n - ddof), np.nan)
+
+    # Clip small negative values due to precision
+    roll_var = np.maximum(roll_var, 0.0)
+
+    return np.column_stack((times, roll_var))
+
+
+def std(
+    values: np.ndarray, width_before: float, width_after: float, ddof: int = 1
+) -> np.ndarray:
+    """
+    Rolling standard deviation of values.
+
+    \\[
+    \\sigma(t_i) = \\sqrt{\\sigma^2(t_i)}
+    \\]
+
+    Args:
+        values (np.ndarray): array of time series values (x, y)
+        width_before (float): width of rolling window before t_i
+        width_after (float): width of rolling window after t_i
+        ddof (int): delta degrees of freedom
+
+    Returns:
+        np.ndarray: array with (time, std)
+    """
+    v = var(values, width_before, width_after, ddof)
+    v[:, 1] = np.sqrt(v[:, 1])
+    return v
+
+
+def max(values: np.ndarray, width_before: float, width_after: float) -> np.ndarray:
+    """
+    Rolling maximum of values.
+
+    \\[
+    M(t_i) = \\max \\{y_j : t_j \\in (t_i - w_b, t_i + w_a]\\}
+    \\]
+
+    Args:
+        values (np.ndarray): array of time series values (x, y)
+        width_before (float): width of rolling window before t_i
+        width_after (float): width of rolling window after t_i
+
+    Returns:
+        np.ndarray: array with (time, max)
+    """
+    if values.size == 0:
+        return np.array([])
+
+    times = values[:, 0]
+    y = values[:, 1]
+    left, right = _get_window_indices(times, width_before, width_after)
+
+    roll_max = np.array(
+        [
+            np.max(y[low:high]) if low < high else np.nan
+            for low, high in zip(left, right)
+        ]
+    )
+    return np.column_stack((times, roll_max))
+
+
+def min(values: np.ndarray, width_before: float, width_after: float) -> np.ndarray:
+    """
+    Rolling minimum of values.
+
+    \\[
+    m(t_i) = \\min \\{y_j : t_j \\in (t_i - w_b, t_i + w_a]\\}
+    \\]
+
+    Args:
+        values (np.ndarray): array of time series values (x, y)
+        width_before (float): width of rolling window before t_i
+        width_after (float): width of rolling window after t_i
+
+    Returns:
+        np.ndarray: array with (time, min)
+    """
+    if values.size == 0:
+        return np.array([])
+
+    times = values[:, 0]
+    y = values[:, 1]
+    left, right = _get_window_indices(times, width_before, width_after)
+
+    roll_min = np.array(
+        [
+            np.min(y[low:high]) if low < high else np.nan
+            for low, high in zip(left, right)
+        ]
+    )
+    return np.column_stack((times, roll_min))
+
+
+def apply(
+    values: np.ndarray,
+    width_before: float,
+    width_after: float,
+    func: Callable[[np.ndarray], float],
+) -> np.ndarray:
+    """
+    Applies a function to a rolling window.
+
+    Args:
+        values (np.ndarray): array of time series values (x, y)
+        width_before (float): width of rolling window before t_i
+        width_after (float): width of rolling window after t_i
+        func (Callable): function to apply to the y-values in the window
+
+    Returns:
+        np.ndarray: array with (time, result)
+    """
+    if values.size == 0:
+        return np.array([])
+
+    times = values[:, 0]
+    y = values[:, 1]
+    left, right = _get_window_indices(times, width_before, width_after)
+
+    results = np.array(
+        [func(y[low:high]) if low < high else np.nan for low, high in zip(left, right)]
+    )
+    return np.column_stack((times, results))
+
+
+def product(
+    values: np.ndarray,
+    width_before: float,
+    width_after: float,
+    eps: Optional[float] = None,
+) -> np.ndarray:
+    """
+    Rolling product of values.
+
+    \\[
+    P(t_i) = \\prod_{j: t_j \\in (t_i - w_b, t_i + w_a]} y_j
+    \\]
+
+    Args:
+        values (np.ndarray): array of time series values (x, y)
+        width_before (float): width of rolling window before t_i
+        width_after (float): width of rolling window after t_i
+        eps (Optional[float]): epsilon for zero detection (kept for compatibility)
+
+    Returns:
+        np.ndarray: array with (time, product)
+    """
+    if values.size == 0:
+        return np.array([])
+
+    times = values[:, 0]
+    y = values[:, 1]
+    left, right = _get_window_indices(times, width_before, width_after)
+
+    # The original implementation used eps for zero detection.
+    # We maintain the signature for backward compatibility.
+    results = np.array(
+        [
+            np.prod(y[low:high]) if low < high else np.nan
+            for low, high in zip(left, right)
+        ]
+    )
+    return np.column_stack((times, results))
