@@ -3,22 +3,18 @@ import unittest
 import numpy as np
 import numpy.testing as npt
 
-from src.uts import peak_detection
+import uts.peak_detection as peak_detection
 
 
-class Test_Peak_Detection(unittest.TestCase):
+class TestPeakDetection(unittest.TestCase):
     def test_find_next_tau(self):
-        points = np.array(
-            [[1.0, 1.0], [3.0, 2.0], [6.0, 3.0], [12.0, 4.0], [24.0, 5.0]]
-        )
+        points = np.array([[1.0, 1.0], [3.0, 2.0], [6.0, 3.0], [12.0, 4.0], [24.0, 5.0]])
         result = peak_detection.find_next_tau(points, 1, 5.0)
         desired = 3
         self.assertEqual(result, desired)
 
     def test_find_next_tau_limit(self):
-        points = np.array(
-            [[1.0, 1.0], [3.0, 2.0], [6.0, 3.0], [12.0, 4.0], [24.0, 5.0]]
-        )
+        points = np.array([[1.0, 1.0], [3.0, 2.0], [6.0, 3.0], [12.0, 4.0], [24.0, 5.0]])
         result = peak_detection.find_next_tau(points, 4, 5.0)
         desired = 4
         self.assertEqual(result, desired)
@@ -277,13 +273,13 @@ class Test_Peak_Detection(unittest.TestCase):
         )
         pmin = points.min(axis=0)
         pmax = points.max(axis=0)
-        Dn = (points - pmin) / (pmax - pmin)
-        x = Dn[:, 0]
-        y = Dn[:, 1]
+        dn = (points - pmin) / (pmax - pmin)
+        x = dn[:, 0]
+        y = dn[:, 1]
         y_d = y - x
-        Dd = np.column_stack((x, y_d))
-        peaks_idx = peak_detection.all_peaks(Dd)
-        result = peak_detection.kneedle_peak_detection(Dd, peaks_idx)
+        dd = np.column_stack((x, y_d))
+        peaks_idx = peak_detection.all_peaks(dd)
+        result = peak_detection.kneedle_peak_detection(dd, peaks_idx)
         desired = np.array([3])
         npt.assert_equal(result, desired)
 
@@ -329,9 +325,7 @@ class Test_Peak_Detection(unittest.TestCase):
     def test_significant_prominence_peaks(self):
         points = np.array([[0, 0], [1, 5], [2, 1], [3, 10], [4, 0]])
         peaks_idx = np.array([1, 3])
-        result = peak_detection.significant_prominence_peaks(
-            points, peaks_idx, threshold=5.0
-        )
+        result = peak_detection.significant_prominence_peaks(points, peaks_idx, threshold=5.0)
         desired = np.array([3])
         npt.assert_equal(result, desired)
 

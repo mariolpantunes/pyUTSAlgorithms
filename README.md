@@ -39,7 +39,7 @@ data = np.array([
     [5.0, 14.0]
 ])
 
-# Compute EMA with a tau (half-life) of 1.0 using linear interpolation
+# Compute EMA with a tau (time constant) of 1.0 using linear interpolation
 results = ema.linear(data, tau=1.0)
 
 print("Original Data:\n", data)

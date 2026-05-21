@@ -23,6 +23,10 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install .
+          pip install . ruff pyright
+      - name: Lint with ruff
+        run: ruff check src tests
+      - name: Type check with pyright
+        run: pyright src tests
       - name: Run tests with unittest
-        run: python -m unittest discover
+        run: PYTHONPATH=src python -m unittest discover

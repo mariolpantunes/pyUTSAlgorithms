@@ -1,12 +1,10 @@
-# coding: utf-8
-
 __author__ = "Mário Antunes"
 __version__ = "0.2"
 __email__ = "mariolpantunes@gmail.com"
 __status__ = "Development"
 
 
-from typing import Callable, Optional
+from collections.abc import Callable
 
 import numpy as np
 
@@ -24,7 +22,7 @@ def _get_window_indices(times: np.ndarray, width_before: float, width_after: flo
     return left, right
 
 
-def num_obs(values: np.ndarray, width_before: float, width_after: float) -> np.ndarray:
+def rolling_num_obs(values: np.ndarray, width_before: float, width_after: float) -> np.ndarray:
     """
     Rolling number of observations.
 
@@ -50,7 +48,7 @@ def num_obs(values: np.ndarray, width_before: float, width_after: float) -> np.n
     return np.column_stack((times, counts.astype(float)))
 
 
-def sum(values: np.ndarray, width_before: float, width_after: float) -> np.ndarray:
+def rolling_sum(values: np.ndarray, width_before: float, width_after: float) -> np.ndarray:
     """
     Rolling sum of values.
 
@@ -79,9 +77,7 @@ def sum(values: np.ndarray, width_before: float, width_after: float) -> np.ndarr
     return np.column_stack((times, roll_sum))
 
 
-def sum_stable(
-    values: np.ndarray, width_before: float, width_after: float
-) -> np.ndarray:
+def rolling_sum_stable(values: np.ndarray, width_before: float, width_after: float) -> np.ndarray:
     """
     Rolling sum of values using a stable algorithm (alias to sum as cumsum is stable).
 
@@ -93,10 +89,10 @@ def sum_stable(
     Returns:
         np.ndarray: array with (time, sum)
     """
-    return sum(values, width_before, width_after)
+    return rolling_sum(values, width_before, width_after)
 
 
-def mean(values: np.ndarray, width_before: float, width_after: float) -> np.ndarray:
+def rolling_mean(values: np.ndarray, width_before: float, width_after: float) -> np.ndarray:
     """
     Rolling mean of values.
 
@@ -130,9 +126,7 @@ def mean(values: np.ndarray, width_before: float, width_after: float) -> np.ndar
     return np.column_stack((times, roll_mean))
 
 
-def var(
-    values: np.ndarray, width_before: float, width_after: float, ddof: int = 1
-) -> np.ndarray:
+def rolling_var(values: np.ndarray, width_before: float, width_after: float, ddof: int = 1) -> np.ndarray:
     """
     Rolling variance of values.
 
@@ -173,9 +167,7 @@ def var(
     return np.column_stack((times, roll_var))
 
 
-def std(
-    values: np.ndarray, width_before: float, width_after: float, ddof: int = 1
-) -> np.ndarray:
+def rolling_std(values: np.ndarray, width_before: float, width_after: float, ddof: int = 1) -> np.ndarray:
     """
     Rolling standard deviation of values.
 
@@ -192,12 +184,12 @@ def std(
     Returns:
         np.ndarray: array with (time, std)
     """
-    v = var(values, width_before, width_after, ddof)
+    v = rolling_var(values, width_before, width_after, ddof)
     v[:, 1] = np.sqrt(v[:, 1])
     return v
 
 
-def max(values: np.ndarray, width_before: float, width_after: float) -> np.ndarray:
+def rolling_max(values: np.ndarray, width_before: float, width_after: float) -> np.ndarray:
     """
     Rolling maximum of values.
 
@@ -220,16 +212,11 @@ def max(values: np.ndarray, width_before: float, width_after: float) -> np.ndarr
     y = values[:, 1]
     left, right = _get_window_indices(times, width_before, width_after)
 
-    roll_max = np.array(
-        [
-            np.max(y[low:high]) if low < high else np.nan
-            for low, high in zip(left, right)
-        ]
-    )
+    roll_max = np.array([np.max(y[low:high]) if low < high else np.nan for low, high in zip(left, right, strict=False)])
     return np.column_stack((times, roll_max))
 
 
-def min(values: np.ndarray, width_before: float, width_after: float) -> np.ndarray:
+def rolling_min(values: np.ndarray, width_before: float, width_after: float) -> np.ndarray:
     """
     Rolling minimum of values.
 
@@ -252,16 +239,11 @@ def min(values: np.ndarray, width_before: float, width_after: float) -> np.ndarr
     y = values[:, 1]
     left, right = _get_window_indices(times, width_before, width_after)
 
-    roll_min = np.array(
-        [
-            np.min(y[low:high]) if low < high else np.nan
-            for low, high in zip(left, right)
-        ]
-    )
+    roll_min = np.array([np.min(y[low:high]) if low < high else np.nan for low, high in zip(left, right, strict=False)])
     return np.column_stack((times, roll_min))
 
 
-def apply(
+def rolling_apply(
     values: np.ndarray,
     width_before: float,
     width_after: float,
@@ -286,17 +268,15 @@ def apply(
     y = values[:, 1]
     left, right = _get_window_indices(times, width_before, width_after)
 
-    results = np.array(
-        [func(y[low:high]) if low < high else np.nan for low, high in zip(left, right)]
-    )
+    results = np.array([func(y[low:high]) if low < high else np.nan for low, high in zip(left, right, strict=False)])
     return np.column_stack((times, results))
 
 
-def product(
+def rolling_product(
     values: np.ndarray,
     width_before: float,
     width_after: float,
-    eps: Optional[float] = None,
+    eps: float | None = None,  # noqa: ARG001
 ) -> np.ndarray:
     """
     Rolling product of values.
@@ -323,10 +303,5 @@ def product(
 
     # The original implementation used eps for zero detection.
     # We maintain the signature for backward compatibility.
-    results = np.array(
-        [
-            np.prod(y[low:high]) if low < high else np.nan
-            for low, high in zip(left, right)
-        ]
-    )
+    results = np.array([np.prod(y[low:high]) if low < high else np.nan for low, high in zip(left, right, strict=False)])
     return np.column_stack((times, results))

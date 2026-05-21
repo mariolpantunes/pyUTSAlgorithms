@@ -1,5 +1,3 @@
-# coding: utf-8
-
 __author__ = "Mário Antunes"
 __version__ = "0.2"
 __email__ = "mariolpantunes@gmail.com"
@@ -9,9 +7,7 @@ __status__ = "Development"
 import numpy as np
 
 
-def lagrange_derivative(
-    x: float, x0: float, x1: float, x2: float, y0: float, y1: float, y2: float
-) -> float:
+def lagrange_derivative(x: float, x0: float, x1: float, x2: float, y0: float, y1: float, y2: float) -> float:
     """
     Three point lagrange derivative.
 
@@ -22,7 +18,9 @@ def lagrange_derivative(
 
     The first derivative is given by:
     \\[
-    f'(x) \\approx y_0 \\frac{2x - x_1 - x_2}{(x_0 - x_1)(x_0 - x_2)} + y_1 \\frac{2x - x_0 - x_2}{(x_1 - x_0)(x_1 - x_2)} + y_2 \\frac{2x - x_0 - x_1}{(x_2 - x_0)(x_2 - x_1)}
+    f'(x) \\approx y_0 \\frac{2x - x_1 - x_2}{(x_0 - x_1)(x_0 - x_2)} +
+    y_1 \\frac{2x - x_0 - x_2}{(x_1 - x_0)(x_1 - x_2)} +
+    y_2 \\frac{2x - x_0 - x_1}{(x_2 - x_0)(x_2 - x_1)}
     \\]
 
     Args:
@@ -116,11 +114,7 @@ def csd(x: np.ndarray, y: np.ndarray) -> np.ndarray:
 
     # Second derivative formula for unevenly spaced points
     # Derived from Lagrange polynomial: 2 * [ y1/((x1-x2)(x1-x3)) + y2/((x2-x1)(x2-x3)) + y3/((x3-x1)(x3-x2)) ]
-    d2_central = 2.0 * (
-        y1 / ((x1 - x2) * (x1 - x3))
-        + y2 / ((x2 - x1) * (x2 - x3))
-        + y3 / ((x3 - x1) * (x3 - x2))
-    )
+    d2_central = 2.0 * (y1 / ((x1 - x2) * (x1 - x3)) + y2 / ((x2 - x1) * (x2 - x3)) + y3 / ((x3 - x1) * (x3 - x2)))
 
     # First point (forward) and last point (backward) use the same parabola as their neighbors
     return np.concatenate(([d2_central[0]], d2_central, [d2_central[-1]]))
@@ -154,9 +148,7 @@ def finite_difference_weights(x0: float, x: np.ndarray, m: int = 1) -> np.ndarra
             c2 = c2 * c3
             if j == i - 1:
                 for k in range(mn, 0, -1):
-                    w[i, k] = (
-                        c1 * (k * w[i - 1, k - 1] - (x[i - 1] - x0) * w[i - 1, k]) / c2
-                    )
+                    w[i, k] = c1 * (k * w[i - 1, k - 1] - (x[i - 1] - x0) * w[i - 1, k]) / c2
                 w[i, 0] = -c1 * (x[i - 1] - x0) * w[i - 1, 0] / c2
             for k in range(mn, 0, -1):
                 w[j, k] = ((x[i] - x0) * w[j, k] - k * w[j, k - 1]) / (x[i] - x[j])
@@ -165,9 +157,7 @@ def finite_difference_weights(x0: float, x: np.ndarray, m: int = 1) -> np.ndarra
     return w[:, m]
 
 
-def fd_derivative(
-    x: np.ndarray, y: np.ndarray, m: int = 1, stencil_size: int = 3
-) -> np.ndarray:
+def fd_derivative(x: np.ndarray, y: np.ndarray, m: int = 1, stencil_size: int = 3) -> np.ndarray:
     """
     Computes the m-th order derivative using a moving stencil of specified size.
     Uses Fornberg's algorithm for weights.

@@ -29,7 +29,7 @@ jobs:
 
       - name: Build documentation
         run: |
-          pdoc --math -d google -o docs_out src/uts \
+          PYTHONPATH=src pdoc --math -d google -o docs_out uts \
             --logo "assets/logo.svg" \
             --favicon "assets/logo.svg"
           cp -r assets docs_out/assets

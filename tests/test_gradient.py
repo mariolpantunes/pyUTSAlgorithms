@@ -3,7 +3,7 @@ import unittest
 import numpy as np
 import numpy.testing as npt
 
-from src.uts import gradient
+import uts.gradient as gradient
 
 
 class TestGradient(unittest.TestCase):

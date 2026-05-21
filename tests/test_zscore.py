@@ -3,7 +3,7 @@ import unittest
 import numpy as np
 import numpy.testing as npt
 
-from src.uts import zscore
+import uts.zscore as zscore
 
 
 class TestZScore(unittest.TestCase):
@@ -29,9 +29,7 @@ class TestZScore(unittest.TestCase):
     def test_zscore_array(self):
         points = np.array([[1, 1], [2, 2], [3, 3], [4, 4], [5, 5], [6, 6]])
         result = zscore.zscore_array_points(points)
-        desired = np.array(
-            [-1.76776695, -1.06066017, -0.35355339, 0.35355339, 1.06066017, 1.76776695]
-        )
+        desired = np.array([-1.76776695, -1.06066017, -0.35355339, 0.35355339, 1.06066017, 1.76776695])
         np.testing.assert_array_almost_equal(result, desired, decimal=6)
 
     def test_zscore_small_input(self):

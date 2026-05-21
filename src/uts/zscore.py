@@ -1,19 +1,13 @@
-# coding: utf-8
-
 __author__ = "Mário Antunes"
 __version__ = "0.2"
 __email__ = "mariolpantunes@gmail.com"
 __status__ = "Development"
 
 
-from typing import Tuple
-
 import numpy as np
 
 
-def weighted_avg_and_std(
-    values: np.ndarray, weights: np.ndarray
-) -> Tuple[float, float]:
+def weighted_avg_and_std(values: np.ndarray, weights: np.ndarray) -> tuple[float, float]:
     """
     Return the weighted average and standard deviation.
 
@@ -50,11 +44,10 @@ def zscore(xi: float, mean: float, std: float) -> float:
     """
     if std != 0:
         return (xi - mean) / std
-    else:
-        return xi - mean
+    return xi - mean
 
 
-def linear_delta_mapping_points(points: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
+def linear_delta_mapping_points(points: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
     """
     Return a linear mapping from the sequence of points.
 
@@ -73,7 +66,7 @@ def linear_delta_mapping_points(points: np.ndarray) -> Tuple[np.ndarray, np.ndar
     return linear_delta_mapping(x, y)
 
 
-def linear_delta_mapping(x: np.ndarray, y: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
+def linear_delta_mapping(x: np.ndarray, y: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
     """
     Return a linear mapping from the sequence of points.
 
@@ -154,5 +147,4 @@ def zscore_array(x: np.ndarray, y: np.ndarray) -> np.ndarray:
     mean, std = weighted_avg_and_std(values, weights)
     if std != 0.0:
         return (y - mean) / std
-    else:
-        return y - mean
+    return y - mean

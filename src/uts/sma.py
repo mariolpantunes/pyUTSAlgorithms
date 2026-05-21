@@ -1,5 +1,3 @@
-# coding: utf-8
-
 __author__ = "Mário Antunes"
 __version__ = "0.2"
 __email__ = "mariolpantunes@gmail.com"
@@ -25,7 +23,7 @@ def _trapezoid_right(x1: float, x2: float, x3: float, y1: float, y3: float) -> f
     return (x2 - x1) * (y1 + y2) / 2.0
 
 
-def last(values: np.ndarray, width_before: float, width_after: float) -> np.ndarray:
+def sma_last(values: np.ndarray, width_before: float, width_after: float) -> np.ndarray:
     """
     Computes the simple moving average using the 'last' interpolation scheme.
 
@@ -46,6 +44,9 @@ def last(values: np.ndarray, width_before: float, width_after: float) -> np.ndar
     n = len(values)
     if n == 0:
         return np.array([])
+
+    if width_before + width_after == 0:
+        return values.copy()
 
     times = values[:, 0]
     y = values[:, 1]
@@ -81,7 +82,7 @@ def last(values: np.ndarray, width_before: float, width_after: float) -> np.ndar
     return rv
 
 
-def next(values: np.ndarray, width_before: float, width_after: float) -> np.ndarray:
+def sma_next(values: np.ndarray, width_before: float, width_after: float) -> np.ndarray:
     """
     Computes the simple moving average using the 'next' interpolation scheme.
 
@@ -102,6 +103,9 @@ def next(values: np.ndarray, width_before: float, width_after: float) -> np.ndar
     n = len(values)
     if n == 0:
         return np.array([])
+
+    if width_before + width_after == 0:
+        return values.copy()
 
     times = values[:, 0]
     y = values[:, 1]
@@ -137,7 +141,7 @@ def next(values: np.ndarray, width_before: float, width_after: float) -> np.ndar
     return rv
 
 
-def linear(values: np.ndarray, width_before: float, width_after: float) -> np.ndarray:
+def sma_linear(values: np.ndarray, width_before: float, width_after: float) -> np.ndarray:
     """
     Computes the simple moving average using the 'linear' interpolation scheme.
 
@@ -159,6 +163,9 @@ def linear(values: np.ndarray, width_before: float, width_after: float) -> np.nd
     if n == 0:
         return np.array([])
 
+    if width_before + width_after == 0:
+        return values.copy()
+
     times = values[:, 0]
     y = values[:, 1]
 
@@ -177,9 +184,7 @@ def linear(values: np.ndarray, width_before: float, width_after: float) -> np.nd
         t_right_new = times[i] + width_after
         while (right < n - 1) and (times[right + 1] <= t_right_new):
             right += 1
-            roll_area += (
-                (y[right] + y[right - 1]) / 2.0 * (times[right] - times[right - 1])
-            )
+            roll_area += (y[right] + y[right - 1]) / 2.0 * (times[right] - times[right - 1])
 
         t_left_new = times[i] - width_before
         while times[left] < t_left_new:

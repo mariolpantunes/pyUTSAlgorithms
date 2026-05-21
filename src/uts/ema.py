@@ -1,5 +1,3 @@
-# coding: utf-8
-
 __author__ = "Mário Antunes"
 __version__ = "0.2"
 __email__ = "mariolpantunes@gmail.com"
@@ -9,7 +7,7 @@ __status__ = "Development"
 import numpy as np
 
 
-def last(values: np.ndarray, tau: float) -> np.ndarray:
+def ema_last(values: np.ndarray, tau: float) -> np.ndarray:
     """
     Computes the exponential moving average using the 'last' interpolation scheme.
 
@@ -20,7 +18,7 @@ def last(values: np.ndarray, tau: float) -> np.ndarray:
 
     Args:
         values (np.ndarray): array of time series values (x, y)
-        tau (float): half-life of EMA kernel
+        tau (float): time constant of EMA kernel
 
     Returns:
         np.ndarray: the result array (time, ema)
@@ -28,6 +26,9 @@ def last(values: np.ndarray, tau: float) -> np.ndarray:
     n = len(values)
     if n == 0:
         return np.array([])
+
+    if tau == 0:
+        return values.copy()
 
     rv = np.empty([n, 2])
     rv[0] = values[0]
@@ -49,7 +50,7 @@ def last(values: np.ndarray, tau: float) -> np.ndarray:
     return rv
 
 
-def next(values: np.ndarray, tau: float) -> np.ndarray:
+def ema_next(values: np.ndarray, tau: float) -> np.ndarray:
     """
     Computes the exponential moving average using the 'next' interpolation scheme.
 
@@ -60,7 +61,7 @@ def next(values: np.ndarray, tau: float) -> np.ndarray:
 
     Args:
         values (np.ndarray): array of time series values (x, y)
-        tau (float): half-life of EMA kernel
+        tau (float): time constant of EMA kernel
 
     Returns:
         np.ndarray: the result array (time, ema)
@@ -68,6 +69,9 @@ def next(values: np.ndarray, tau: float) -> np.ndarray:
     n = len(values)
     if n == 0:
         return np.array([])
+
+    if tau == 0:
+        return values.copy()
 
     rv = np.empty([n, 2])
     rv[0] = values[0]
@@ -87,7 +91,7 @@ def next(values: np.ndarray, tau: float) -> np.ndarray:
     return rv
 
 
-def linear(values: np.ndarray, tau: float) -> np.ndarray:
+def ema_linear(values: np.ndarray, tau: float) -> np.ndarray:
     """
     Computes the exponential moving average using the 'linear' interpolation scheme.
 
@@ -99,7 +103,7 @@ def linear(values: np.ndarray, tau: float) -> np.ndarray:
 
     Args:
         values (np.ndarray): array of time series values (x, y)
-        tau (float): half-life of EMA kernel
+        tau (float): time constant of EMA kernel
 
     Returns:
         np.ndarray: the result array (time, ema)
@@ -107,6 +111,9 @@ def linear(values: np.ndarray, tau: float) -> np.ndarray:
     n = len(values)
     if n == 0:
         return np.array([])
+
+    if tau == 0:
+        return values.copy()
 
     rv = np.empty([n, 2])
     rv[0] = values[0]
@@ -120,10 +127,7 @@ def linear(values: np.ndarray, tau: float) -> np.ndarray:
         w = np.exp(-tmp)
 
         # Numerical stability for small dt/tau using Taylor expansion
-        if tmp > 1e-6:
-            w2 = (1.0 - w) / tmp
-        else:
-            w2 = 1.0 - (tmp / 2.0) + (tmp**2 / 6.0) - (tmp**3 / 24.0)
+        w2 = (1.0 - w) / tmp if tmp > 1e-6 else 1.0 - (tmp / 2.0) + (tmp**2 / 6.0) - (tmp**3 / 24.0)
 
         ema_prev = rv[i - 1][1]
         y_curr = y[i]

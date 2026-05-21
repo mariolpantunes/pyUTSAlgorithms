@@ -2,7 +2,7 @@ import unittest
 
 import numpy as np
 
-from src.uts import thresholding
+import uts.thresholding as thresholding
 
 
 class TestThresholding(unittest.TestCase):

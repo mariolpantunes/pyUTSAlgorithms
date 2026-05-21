@@ -1,5 +1,3 @@
-# coding: utf-8
-
 __author__ = "Mário Antunes"
 __version__ = "0.2"
 __email__ = "mariolpantunes@gmail.com"
@@ -7,7 +5,6 @@ __status__ = "Development"
 
 
 import math
-from typing import Optional
 
 import numpy as np
 
@@ -56,7 +53,7 @@ def all_valleys(points: np.ndarray) -> np.ndarray:
     return np.where(valleys)[0] + 1
 
 
-def highest_peak(points: np.ndarray, peaks_idx: np.ndarray) -> Optional[int]:
+def highest_peak(points: np.ndarray, peaks_idx: np.ndarray) -> int | None:
     """
     Returns the index of the highest peak in a curve.
 
@@ -74,9 +71,7 @@ def highest_peak(points: np.ndarray, peaks_idx: np.ndarray) -> Optional[int]:
     return peaks_idx[np.argmax(peaks_values)]
 
 
-def significant_peaks(
-    points: np.ndarray, peaks_idx: np.ndarray, h: float = 1.0
-) -> np.ndarray:
+def significant_peaks(points: np.ndarray, peaks_idx: np.ndarray, h: float = 1.0) -> np.ndarray:
     """
     Returns the index of the significant peaks in a 2D curve.
 
@@ -163,17 +158,13 @@ def zscore_peaks_values(points: np.ndarray, peaks_idx: np.ndarray) -> np.ndarray
             left_idx = peaks_idx[j - 1]
 
         right_idx = find_next_tau(points, idx, tau)
-        score = math.fabs(
-            zscore.zscore_linear(points[idx, 1], points[left_idx : right_idx + 1])
-        )
+        score = math.fabs(zscore.zscore_linear(points[idx, 1], points[left_idx : right_idx + 1]))
         scores.append(score)
 
     return np.array(scores)
 
 
-def significant_zscore_peaks(
-    points: np.ndarray, peaks_idx: np.ndarray, t: float = 1.0
-) -> np.ndarray:
+def significant_zscore_peaks(points: np.ndarray, peaks_idx: np.ndarray, t: float = 1.0) -> np.ndarray:
     """
     Returns the index of the significant peaks in a 2D curve.
 
@@ -194,9 +185,7 @@ def significant_zscore_peaks(
     return peaks_idx[scores > t]
 
 
-def significant_zscore_peaks_iso(
-    points: np.ndarray, peaks_idx: np.ndarray
-) -> np.ndarray:
+def significant_zscore_peaks_iso(points: np.ndarray, peaks_idx: np.ndarray) -> np.ndarray:
     """
     Returns the index of the significant peaks in a 2D curve.
 
@@ -223,9 +212,7 @@ def significant_zscore_peaks_iso(
     return peaks_idx[scores > t]
 
 
-def kneedle_peak_detection(
-    points: np.ndarray, peaks_idx: np.ndarray, s: float = 1.0
-) -> np.ndarray:
+def kneedle_peak_detection(points: np.ndarray, peaks_idx: np.ndarray, s: float = 1.0) -> np.ndarray:
     """
     Returns the index of the significant peaks in a 2D curve.
 
@@ -323,9 +310,7 @@ def peak_prominence(points: np.ndarray, peaks_idx: np.ndarray) -> np.ndarray:
     return prominences
 
 
-def significant_prominence_peaks(
-    points: np.ndarray, peaks_idx: np.ndarray, threshold: float
-) -> np.ndarray:
+def significant_prominence_peaks(points: np.ndarray, peaks_idx: np.ndarray, threshold: float) -> np.ndarray:
     """
     Returns the index of the significant peaks based on prominence.
 
